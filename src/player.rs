@@ -4,6 +4,7 @@ use std::f32::consts::PI;
 use crate::maze::is_wall;
 use crate::Framebuffer;
 use crate::Color;
+use crate::cast_ray::{cast_ray, normalize_angle};
 
 pub struct Player {
     pub pos: Vec2,
@@ -20,9 +21,9 @@ impl Player {
         }
     }
 
-    pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: usize) {
+    pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: usize, framebuffer: &mut Framebuffer) {
         const MOVE_SPEED: f32 = 10.0;
-        const ROTATION_SPEED: f32 = PI / 10.0;
+        const ROTATION_SPEED: f32 = std::f32::consts::PI / 10.0;
 
         let cos_a = self.a.cos();
         let sin_a = self.a.sin();
@@ -34,21 +35,29 @@ impl Player {
             self.a += ROTATION_SPEED;
         }
         if window.is_key_down(Key::Up) {
-            let new_x = self.pos.x + cos_a * MOVE_SPEED;
-            let new_y = self.pos.y + sin_a * MOVE_SPEED;
+            let move_x = MOVE_SPEED * cos_a;
+            let move_y = MOVE_SPEED * sin_a;
+            let new_pos = Vec2::new(self.pos.x + move_x, self.pos.y + move_y);
+            let angle = (move_y.atan2(move_x) - self.a).to_radians();
+            let angle = normalize_angle(angle);
 
-            if !is_wall(maze, (new_x / block_size as f32) as usize, (new_y / block_size as f32) as usize) {
-                self.pos.x = new_x;
-                self.pos.y = new_y;
+            if let Some(intersect) = cast_ray(&new_pos, angle, maze, block_size, false, None) {
+                if !is_wall(maze, (intersect.x / block_size as f32) as usize, (intersect.y / block_size as f32) as usize) {
+                    self.pos = new_pos;
+                }
             }
         }
         if window.is_key_down(Key::Down) {
-            let new_x = self.pos.x - cos_a * MOVE_SPEED;
-            let new_y = self.pos.y - sin_a * MOVE_SPEED;
+            let move_x = -MOVE_SPEED * cos_a;
+            let move_y = -MOVE_SPEED * sin_a;
+            let new_pos = Vec2::new(self.pos.x + move_x, self.pos.y + move_y);
+            let angle = (move_y.atan2(move_x) - self.a).to_radians();
+            let angle = normalize_angle(angle);
 
-            if !is_wall(maze, (new_x / block_size as f32) as usize, (new_y / block_size as f32) as usize) {
-                self.pos.x = new_x;
-                self.pos.y = new_y;
+            if let Some(intersect) = cast_ray(&new_pos, angle, maze, block_size, false, None) {
+                if !is_wall(maze, (intersect.x / block_size as f32) as usize, (intersect.y / block_size as f32) as usize) {
+                    self.pos = new_pos;
+                }
             }
         }
     }

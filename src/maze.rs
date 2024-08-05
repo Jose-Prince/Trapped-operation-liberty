@@ -3,6 +3,8 @@ use crate::framebuffer::Framebuffer;
 use crate::color::Color;
 use crate::cast_ray::cast_ray; // Asegúrate de importar la función cast_ray correctamente
 use crate::player::Player;
+use crate::texture::Texture;
+
 use nalgebra_glm::Vec2;
 use std::io::Result;
 
@@ -44,34 +46,22 @@ pub fn render(framebuffer: &mut Framebuffer, file_path: &str) -> Vec<Vec<char>> 
     maze
 }
 
-pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, file_path: &str) -> Vec<Vec<char>> {
+pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, file_path: &str, texture: &Texture) -> Vec<Vec<char>> {
     let maze = load_maze(file_path);
     let rows = maze.len();
     let cols = maze[0].len();
 
     let block_size = std::cmp::min(framebuffer.get_width() / cols, framebuffer.get_height() / rows);
-    let player_pos = player.pos.clone(); // Asegúrate de obtener la posición del jugador
 
-    // Render 3D view
     let num_rays = framebuffer.get_width();
     let hw = framebuffer.get_width() as f32 / 2.0; // Half width
     let hh = framebuffer.get_height() as f32 / 2.0; // Half height
     let distance_to_projection_plane = hw / (player.fov / 2.0).tan(); // Distancia del jugador al plano de proyección
 
-    framebuffer.set_current_color(Color::new(255, 255, 255));
-
     for i in 0..num_rays {
         let current_ray = i as f32 / num_rays as f32; // Ray proportion
         let angle = player.a - (player.fov / 2.0) + (player.fov * current_ray);
-        
-        if let Some(intersect) = cast_ray(
-            &player_pos,
-            angle,
-            &maze,
-            block_size,
-            framebuffer,
-            false // No necesitamos dibujar el rayo para la visualización 3D
-        ) {
+        if let Some(intersect) = cast_ray(&player.pos, angle, &maze, block_size, false, None) {
             // Calculate the height of the stake
             let distance_to_wall = intersect.distance; // Distance to wall
             let corrected_distance = distance_to_wall * (angle - player.a).cos(); // Correct fish-eye effect
@@ -80,10 +70,15 @@ pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, file_path: &str)
             // Calculate stake top and bottom
             let stake_top = (hh - (stake_height / 2.0)) as usize;
             let stake_bottom = (hh + (stake_height / 2.0)) as usize;
+
+            // Calculate the texture column to use
+            let texture_x = ((intersect.x % block_size as f32) / block_size as f32 * texture.width as f32) as usize;
             
-            // Draw the stake
-            framebuffer.set_current_color(Color::new(255, 255, 255)); // White color for the stake
+            // Draw the stake with texture
             for y in stake_top..stake_bottom {
+                let texture_y = ((y as f32 - stake_top as f32) / (stake_bottom as f32 - stake_top as f32) * texture.height as f32) as usize;
+                let color = texture.get_color(texture_x, texture_y);
+                framebuffer.set_current_color(color);
                 framebuffer.point(i as isize, y as isize);
             }
         }
@@ -91,6 +86,7 @@ pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, file_path: &str)
 
     maze
 }
+
 
 pub fn is_wall(maze: &Vec<Vec<char>>, x: usize, y: usize) -> bool {
     if y < maze.len() && x < maze[0].len() {
