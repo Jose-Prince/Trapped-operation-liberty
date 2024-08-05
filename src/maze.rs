@@ -51,27 +51,28 @@ pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, file_path: &str)
     
     let hw = framebuffer.get_width() as f32 / 2.0; // Half width
     let hh = framebuffer.get_height() as f32 / 2.0; // Half height
-    
+    let distance_to_projection_plane = hw / (player.fov / 2.0).tan(); // Distancia del jugador al plano de proyección
+
     framebuffer.set_current_color(Color::new(255, 255, 255));
     
     for i in 0..num_rays {
         let current_ray = i as f32 / num_rays as f32; // Ray proportion
         let angle = player.a - (player.fov / 2.0) + (player.fov * current_ray);
-        let intersect = cast_ray(framebuffer, &maze, &player, angle, block_size, true);
-        
-        // Calculate the height of the stake
-        let distance_to_wall = intersect.distance; // Distance to wall
-        let distance_to_projection_plane = (hw / (distance_to_wall + 0.1)).max(0.0); // Prevent division by zero
-        let stake_height = (hh / distance_to_projection_plane).min(hh); // Adjust stake height
-        
-        // Calculate stake top and bottom
-        let stake_top = (hh - (stake_height / 2.0)) as usize;
-        let stake_bottom = (hh + (stake_height / 2.0)) as usize;
-        
-        // Draw the stake
-        framebuffer.set_current_color(Color::new(255, 255, 255)); // White color for the stake
-        for y in stake_top..stake_bottom {
-            framebuffer.point(i as isize, y as isize);
+        if let Some(intersect) = cast_ray(framebuffer, &maze, &player, angle, block_size, true) {
+            // Calculate the height of the stake
+            let distance_to_wall = intersect.distance; // Distance to wall
+            let corrected_distance = distance_to_wall * (angle - player.a).cos(); // Correct fish-eye effect
+            let stake_height = (block_size as f32 * distance_to_projection_plane / corrected_distance).min(hh * 2.0);
+            
+            // Calculate stake top and bottom
+            let stake_top = (hh - (stake_height / 2.0)) as usize;
+            let stake_bottom = (hh + (stake_height / 2.0)) as usize;
+            
+            // Draw the stake
+            framebuffer.set_current_color(Color::new(255, 255, 255)); // White color for the stake
+            for y in stake_top..stake_bottom {
+                framebuffer.point(i as isize, y as isize);
+            }
         }
     }
 }

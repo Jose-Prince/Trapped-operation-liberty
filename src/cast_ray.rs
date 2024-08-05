@@ -4,7 +4,7 @@ use crate::player::Player;
 
 pub struct Intersect {
     pub distance: f32,
-    pub impact: char
+    pub impact: char,
 }
 
 pub fn cast_ray(
@@ -14,8 +14,9 @@ pub fn cast_ray(
     a: f32,
     block_size: usize,
     draw_line: bool,
-) -> Intersect {
+) -> Option<Intersect> {
     let mut d = 0.0;
+    let max_distance = 1000.0; // Límite máximo de distancia
 
     framebuffer.set_current_color(Color::new(255, 0, 0));
 
@@ -30,17 +31,14 @@ pub fn cast_ray(
 
         // Verificar que los índices están dentro de los límites
         if j >= maze.len() || i >= maze[0].len() {
-            return Intersect {
-                distance: d,
-                impact: ' ', // Puedes cambiar esto si es necesario para representar un impacto fuera de los límites
-            };
+            return None;
         }
 
         if maze[j][i] != ' ' {
-            return Intersect {
+            return Some(Intersect {
                 distance: d,
                 impact: maze[j][i],
-            };
+            });
         }
 
         if draw_line {
@@ -49,12 +47,9 @@ pub fn cast_ray(
 
         d += 1.0;
 
-        // Opcional: Limitar la distancia máxima para evitar bucles infinitos
-        if d > 1000.0 {
-            return Intersect {
-                distance: d,
-                impact: ' ',
-            };
+        // Limitar la distancia máxima para evitar bucles infinitos
+        if d > max_distance {
+            return None;
         }
     }
 }
