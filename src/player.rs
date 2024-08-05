@@ -22,8 +22,8 @@ impl Player {
     }
 
     pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: usize, framebuffer: &mut Framebuffer) {
-        const MOVE_SPEED: f32 = 10.0;
-        const ROTATION_SPEED: f32 = std::f32::consts::PI / 10.0;
+        const MOVE_SPEED: f32 = 5.0;
+        const ROTATION_SPEED: f32 = std::f32::consts::PI / 30.0;
 
         let cos_a = self.a.cos();
         let sin_a = self.a.sin();
@@ -38,26 +38,18 @@ impl Player {
             let move_x = MOVE_SPEED * cos_a;
             let move_y = MOVE_SPEED * sin_a;
             let new_pos = Vec2::new(self.pos.x + move_x, self.pos.y + move_y);
-            let angle = (move_y.atan2(move_x) - self.a).to_radians();
-            let angle = normalize_angle(angle);
 
-            if let Some(intersect) = cast_ray(&new_pos, angle, maze, block_size, false, None) {
-                if !is_wall(maze, (intersect.x / block_size as f32) as usize, (intersect.y / block_size as f32) as usize) {
-                    self.pos = new_pos;
-                }
+            if !is_wall(maze, (new_pos.x / block_size as f32) as usize, (new_pos.y / block_size as f32) as usize) {
+                self.pos = new_pos;
             }
         }
         if window.is_key_down(Key::Down) {
             let move_x = -MOVE_SPEED * cos_a;
             let move_y = -MOVE_SPEED * sin_a;
             let new_pos = Vec2::new(self.pos.x + move_x, self.pos.y + move_y);
-            let angle = (move_y.atan2(move_x) - self.a).to_radians();
-            let angle = normalize_angle(angle);
 
-            if let Some(intersect) = cast_ray(&new_pos, angle, maze, block_size, false, None) {
-                if !is_wall(maze, (intersect.x / block_size as f32) as usize, (intersect.y / block_size as f32) as usize) {
-                    self.pos = new_pos;
-                }
+            if !is_wall(maze, (new_pos.x / block_size as f32) as usize, (new_pos.y / block_size as f32) as usize) {
+                self.pos = new_pos;
             }
         }
     }

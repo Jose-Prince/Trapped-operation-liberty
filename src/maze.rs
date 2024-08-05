@@ -1,12 +1,11 @@
 use crate::fileReader::load_maze;
 use crate::framebuffer::Framebuffer;
 use crate::color::Color;
-use crate::cast_ray::cast_ray; // Asegúrate de importar la función cast_ray correctamente
+use crate::cast_ray::cast_ray;
 use crate::player::Player;
 use crate::texture::Texture;
 
 use nalgebra_glm::Vec2;
-use std::io::Result;
 
 fn draw_cell(framebuffer: &mut Framebuffer, x0: usize, y0: usize, block_size: usize, cell: char) {
     match cell {
@@ -46,7 +45,7 @@ pub fn render(framebuffer: &mut Framebuffer, file_path: &str) -> Vec<Vec<char>> 
     maze
 }
 
-pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, file_path: &str, texture: &Texture) -> Vec<Vec<char>> {
+pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, file_path: &str, texture: &Texture) {
     let maze = load_maze(file_path);
     let rows = maze.len();
     let cols = maze[0].len();
@@ -83,10 +82,7 @@ pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, file_path: &str,
             }
         }
     }
-
-    maze
 }
-
 
 pub fn is_wall(maze: &Vec<Vec<char>>, x: usize, y: usize) -> bool {
     if y < maze.len() && x < maze[0].len() {

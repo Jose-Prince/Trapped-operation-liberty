@@ -48,7 +48,7 @@ fn main() {
         player.process_events(&window, &maze, block_size, &mut framebuffer);
 
         framebuffer.clear();
-        player.draw(&mut framebuffer);
+        // player.draw(&mut framebuffer);
         
         render3d(&mut framebuffer, &player, "src/maze.txt", &texture);
 

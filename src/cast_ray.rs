@@ -1,7 +1,5 @@
 use nalgebra_glm::Vec2;
-use crate::color::Color;
 use crate::framebuffer::Framebuffer;
-use crate::player::Player;
 
 pub struct Intersect {
     pub x: f32,
