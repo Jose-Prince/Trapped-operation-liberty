@@ -14,8 +14,13 @@ use player::Player;
 use maze::render;
 use maze::render3d;
 use minifb::{Window, WindowOptions, Key};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use std::f32::consts::PI;
+
+fn calculate_fps(start_time: Instant, frame_count: usize) -> f64 {
+    let duration = start_time.elapsed().as_secs_f64();
+    frame_count as f64 / duration
+}
 
 fn main() {
     // Suponiendo que tienes un framebuffer y un jugador configurados
@@ -44,6 +49,9 @@ fn main() {
     // Cargar la textura desde un archivo .png
     let texture = Texture::from_file("textures/prison_wall.png");
 
+    let mut frame_count = 0;
+    let start_time = Instant::now();
+
     while window.is_open() && !window.is_key_down(Key::Escape) {
         player.process_events(&window, &maze, block_size, &mut framebuffer);
 
@@ -51,6 +59,10 @@ fn main() {
         // player.draw(&mut framebuffer);
         
         render3d(&mut framebuffer, &player, "src/maze.txt", &texture);
+
+        frame_count += 1;
+        let fps = calculate_fps(start_time, frame_count);
+        framebuffer.draw_text(width-100, 10, &format!("FPS: {:.2}", fps), Color::new(0,255,0));
 
         window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
         std::thread::sleep(Duration::from_millis(16));

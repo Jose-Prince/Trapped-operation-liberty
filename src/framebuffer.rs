@@ -1,6 +1,8 @@
 use crate::bmp::write_bmp_file;
 use crate::color::Color;
 
+use rusttype::{Font, Scale, point, PositionedGlyph};
+
 pub struct Framebuffer {
     width: usize,
     height: usize,
@@ -94,6 +96,42 @@ impl Framebuffer {
                         self.point(x, y);
                     }
                 }
+            }
+        }
+    }
+
+    pub fn draw_text(&mut self, x: usize, y: usize, text: &str, color: Color) {
+        // Cargar la fuente desde el archivo
+        let font_data = include_bytes!("../fonts/Meditative.ttf");
+        let font = Font::try_from_bytes(font_data as &[u8]).unwrap();
+    
+        // Definir la escala (tamaño) del texto
+        let scale = Scale::uniform(20.0); // Ajusta el tamaño según sea necesario
+    
+        // Establecer el color actual del framebuffer
+        self.set_current_color(color);
+    
+        // Obtener métricas verticales de la fuente
+        let v_metrics = font.v_metrics(scale);
+    
+        // Crear una posición de punto para el layout
+        let start_point = point(x as f32, y as f32 + v_metrics.ascent);
+    
+        // Generar los glifos posicionados para el texto dado
+        let glyphs: Vec<PositionedGlyph> = font.layout(text, scale, start_point).collect();
+    
+        // Dibujar cada glifo en el framebuffer
+        for glyph in glyphs {
+            if let Some(bounding_box) = glyph.pixel_bounding_box() {
+                glyph.draw(|gx, gy, gv| {
+                    let px = gx as i32 + bounding_box.min.x;
+                    let py = gy as i32 + bounding_box.min.y;
+    
+                    // Verificar que el valor del glifo sea suficientemente alto para dibujar
+                    if gv > 0.1 { // Ajusta el umbral según sea necesario
+                        self.point(px as isize, py as isize);
+                    }
+                });
             }
         }
     }
