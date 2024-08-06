@@ -22,7 +22,7 @@ impl Player {
             fov,
             prev_mouse_x: 0.0,
             prev_mouse_y: 0.0,
-            mouse_sensitivity: 0.02, // Ajusta la sensibilidad del ratón según sea necesario
+            mouse_sensitivity: 0.01, // Ajusta la sensibilidad del ratón según sea necesario
         }
     }
 

@@ -1,3 +1,6 @@
+use crate::polygon::Polygon;
+use crate::line::Line;
+
 use crate::fileReader::load_maze;
 use crate::framebuffer::Framebuffer;
 use crate::color::Color;
@@ -46,6 +49,25 @@ pub fn render(framebuffer: &mut Framebuffer, file_path: &str) -> Vec<Vec<char>> 
 }
 
 pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, file_path: &str, texture: &Texture) {
+
+    let roof_color = Color::new(102,102,102);
+    let floor_color = Color::new(187,187,187);
+
+    let first_half: Vec<[isize; 2]> = vec![
+        [0,0],
+        [framebuffer.get_width().try_into().unwrap(),0],
+        [framebuffer.get_width().try_into().unwrap(),(framebuffer.get_height()/2).try_into().unwrap()],
+        [0,(framebuffer.get_height()/2).try_into().unwrap()],
+    ];
+
+    let second_half: Vec<[isize; 2]> = vec![
+        [0,(framebuffer.get_height()/2).try_into().unwrap()],
+        [framebuffer.get_width().try_into().unwrap(),(framebuffer.get_height()/2).try_into().unwrap()],
+        [framebuffer.get_width().try_into().unwrap(),framebuffer.get_height().try_into().unwrap()],
+        [0,framebuffer.get_height().try_into().unwrap()],
+    ];
+
+
     let maze = load_maze(file_path);
     let rows = maze.len();
     let cols = maze[0].len();
@@ -56,6 +78,9 @@ pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, file_path: &str,
     let hw = framebuffer.get_width() as f32 / 2.0; // Half width
     let hh = framebuffer.get_height() as f32 / 2.0; // Half height
     let distance_to_projection_plane = hw / (player.fov / 2.0).tan(); // Distancia del jugador al plano de proyección
+
+    framebuffer.polygon(&first_half, roof_color, roof_color);
+    framebuffer.polygon(&second_half, floor_color, floor_color);
 
     for i in 0..num_rays {
         let current_ray = i as f32 / num_rays as f32; // Ray proportion
