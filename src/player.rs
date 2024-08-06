@@ -4,12 +4,14 @@ use std::f32::consts::PI;
 use crate::maze::is_wall;
 use crate::Framebuffer;
 use crate::Color;
-use crate::cast_ray::{cast_ray, normalize_angle};
 
 pub struct Player {
     pub pos: Vec2,
     pub a: f32,
     pub fov: f32, // Campo de visión
+    prev_mouse_x: f32,
+    prev_mouse_y: f32,
+    mouse_sensitivity: f32, // Sensibilidad del ratón
 }
 
 impl Player {
@@ -18,6 +20,9 @@ impl Player {
             pos: Vec2::new(x, y),
             a,
             fov,
+            prev_mouse_x: 0.0,
+            prev_mouse_y: 0.0,
+            mouse_sensitivity: 0.02, // Ajusta la sensibilidad del ratón según sea necesario
         }
     }
 
@@ -83,6 +88,26 @@ impl Player {
             self.pos = new_pos;
         }
     }        
+
+    pub fn update_mouse(&mut self, mouse_x: f32, mouse_y: f32, window_width: f32, window_height: f32) {
+        // Calcula el movimiento del mouse
+        let delta_x = mouse_x - self.prev_mouse_x;
+        let delta_y = mouse_y - self.prev_mouse_y;
+
+        // Actualiza el ángulo del jugador basado en el movimiento del mouse
+        self.a -= delta_x * self.mouse_sensitivity;
+
+        // Asegúrate de que el ángulo esté en el rango [0, 2π)
+        self.a = self.a.rem_euclid(2.0 * PI);
+
+        // Actualiza la posición previa del mouse
+        self.prev_mouse_x = mouse_x;
+        self.prev_mouse_y = mouse_y;
+
+        // Opcional: Mueve el cursor al centro de la ventana
+        // Esto puede ser necesario para obtener movimientos continuos
+        // window.set_cursor_pos((window_width / 2.0) as usize, (window_height / 2.0) as usize).unwrap();
+    }
 
     pub fn draw(&self, framebuffer: &mut Framebuffer) {
         const PLAYER_SIZE: usize = 5;

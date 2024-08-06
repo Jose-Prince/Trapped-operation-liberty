@@ -23,7 +23,6 @@ fn calculate_fps(start_time: Instant, frame_count: usize) -> f64 {
 }
 
 fn main() {
-    // Suponiendo que tienes un framebuffer y un jugador configurados
     let width = 800;
     let height = 800;
     let mut framebuffer = Framebuffer::new(width, height);
@@ -53,6 +52,11 @@ fn main() {
     let start_time = Instant::now();
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
+        // Obtener la posición del mouse
+        if let Some((mouse_x, mouse_y)) = window.get_mouse_pos(minifb::MouseMode::Clamp) {
+            player.update_mouse(mouse_x as f32, mouse_y as f32, width as f32, height as f32);
+        }
+
         player.process_events(&window, &maze, block_size, &mut framebuffer);
 
         framebuffer.clear();
@@ -62,11 +66,9 @@ fn main() {
 
         frame_count += 1;
         let fps = calculate_fps(start_time, frame_count);
-        framebuffer.draw_text(width-100, 10, &format!("FPS: {:.2}", fps), Color::new(0,255,0));
+        framebuffer.draw_text(width - 100, 10, &format!("FPS: {:.2}", fps), Color::new(0, 255, 0));
 
         window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
         std::thread::sleep(Duration::from_millis(16));
     }
-
-    // Renderizar la vista 3D con la textura
 }
