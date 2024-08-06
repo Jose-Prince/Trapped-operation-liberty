@@ -90,20 +90,21 @@ impl Player {
     }        
 
     pub fn update_mouse(&mut self, mouse_x: f32, mouse_y: f32, window_width: f32, window_height: f32) {
-        // Calcula el movimiento del mouse
+        // Calcula el movimiento del ratón
         let delta_x = mouse_x - self.prev_mouse_x;
         let delta_y = mouse_y - self.prev_mouse_y;
-
-        // Actualiza el ángulo del jugador basado en el movimiento del mouse
-        self.a -= delta_x * self.mouse_sensitivity;
-
+    
+        // Actualiza el ángulo del jugador basado en el movimiento del ratón
+        // Invertir el signo aquí para que el movimiento del ratón a la derecha mueva la cámara a la derecha
+        self.a += delta_x * self.mouse_sensitivity;
+    
         // Asegúrate de que el ángulo esté en el rango [0, 2π)
         self.a = self.a.rem_euclid(2.0 * PI);
-
-        // Actualiza la posición previa del mouse
+    
+        // Actualiza la posición previa del ratón
         self.prev_mouse_x = mouse_x;
         self.prev_mouse_y = mouse_y;
-
+    
         // Opcional: Mueve el cursor al centro de la ventana
         // Esto puede ser necesario para obtener movimientos continuos
         // window.set_cursor_pos((window_width / 2.0) as usize, (window_height / 2.0) as usize).unwrap();
