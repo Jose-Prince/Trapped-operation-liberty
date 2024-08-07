@@ -15,7 +15,7 @@ use color::Color;
 use player::Player;
 use polygon::Polygon;
 use line::Line;
-use maze::{render, render3d};
+use maze::{render, render3d, render_enemies_pos, render_billboard};
 use minifb::{Window, WindowOptions, Key};
 use std::time::{Duration, Instant};
 use std::f32::consts::PI;
@@ -41,6 +41,7 @@ fn main() {
 
     let file_path = "src/maze.txt";
     let (maze, player_pos) = render(&mut framebuffer, file_path);
+    let enemies_pos = render_enemies_pos(& mut framebuffer, file_path);
     let block_size = std::cmp::min(
         framebuffer.get_width() / maze[0].len(),
         framebuffer.get_height() / maze.len()
@@ -50,6 +51,7 @@ fn main() {
 
     // Cargar la textura desde un archivo .png
     let texture = Texture::from_file("textures/prison_wall.png");
+    let enemy_texture = Texture::from_file("textures/Police.png");
 
     let mut frame_count = 0;
     let start_time = Instant::now();
@@ -65,6 +67,7 @@ fn main() {
         framebuffer.clear();
         
         render3d(&mut framebuffer, &player, &maze, block_size, &texture);
+        render_billboard(&mut framebuffer, &player.pos, player.a, &enemies_pos[0], &enemy_texture, player.fov);
 
         frame_count += 1;
         let fps = calculate_fps(start_time, frame_count);

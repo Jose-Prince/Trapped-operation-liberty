@@ -48,6 +48,62 @@ pub fn render(framebuffer: &mut Framebuffer, file_path: &str) -> (Vec<Vec<char>>
     (maze, player_pos)
 }
 
+pub fn render_enemies_pos(framebuffer: &mut Framebuffer, file_path: &str) -> Vec<Vec2> {
+    let maze = load_maze(file_path);
+    let rows = maze.len();
+    let cols = maze[0].len();
+
+    let block_size = std::cmp::min(framebuffer.get_width() / cols, framebuffer.get_height() / rows);
+
+    let mut enemies_pos : Vec<Vec2> = Vec::new();
+
+    for row in 0..rows {
+        for col in 0..cols {
+            if maze[row][col] == 'e' {
+                enemies_pos.push(Vec2::new((col * block_size) as f32 + (block_size / 2) as f32, (row * block_size) as f32 + (block_size / 2) as f32));
+            }
+        }
+    }
+
+    enemies_pos
+}
+
+pub fn render_billboard(
+    framebuffer: &mut Framebuffer,
+    player_pos: &Vec2,
+    player_angle: f32,
+    enemy_pos: &Vec2,
+    texture: &Texture,
+    fov: f32,
+) {
+    let dx = enemy_pos.x - player_pos.x;
+    let dy = enemy_pos.y - player_pos.y;
+
+    let distance_to_enemy = (dx * dx + dy * dy).sqrt();
+    let angle_to_enemy = (dy).atan2(dx);
+
+    let relative_angle = angle_to_enemy - player_angle;
+    let corrected_distance = distance_to_enemy * relative_angle.cos();
+
+    let hw = framebuffer.get_width() as f32 / 2.0;
+    let hh = framebuffer.get_height() as f32 / 2.0;
+    let distance_to_projection_plane = hw / (fov / 2.0).tan();
+
+    let enemy_height = (texture.height as f32 * distance_to_projection_plane / corrected_distance).min(hh * 2.0);
+    let enemy_top = (hh - (enemy_height / 2.0)) as isize;
+    let enemy_bottom = (hh + (enemy_height / 2.0)) as isize;
+    let enemy_screen_x = (hw + (hw * relative_angle.tan())).round() as isize;
+
+    for y in enemy_top..enemy_bottom {
+        let texture_y = (((y - enemy_top) as f32 / (enemy_bottom - enemy_top) as f32) * texture.height as f32) as usize;
+        for x in 0..texture.width {
+            let color = texture.get_color(x, texture_y);
+            framebuffer.set_current_color(color);
+            framebuffer.point(enemy_screen_x + x as isize - texture.width as isize / 2, y);
+        }
+    }
+}
+
 pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, maze: &Vec<Vec<char>>, block_size: usize, texture: &Texture) {
     let roof_color = Color::new(102, 102, 102);
     let floor_color = Color::new(187, 187, 187);
