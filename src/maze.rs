@@ -116,14 +116,14 @@ pub fn render_enemy(
             let ty = (((y - start_y) * enemy_texture.height as usize) / sprite_size as usize) as u32;
             let color = enemy_texture.get_color(tx as usize, ty as usize);
 
-            if color.to_hex() != 0x980088 { // Ajusta el color hexadecimal según sea necesario
+            if color.to_hex() != 0x000000 { // Ajusta el color hexadecimal según sea necesario para el fondo transparente
                 framebuffer.set_current_color(color);
                 framebuffer.point(x as isize, y as isize);
             }
-            
         }
     }
 }
+
 
 pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, maze: &Vec<Vec<char>>, block_size: f32, texture: &Texture) {
     let roof_color = Color::new(102, 102, 102);

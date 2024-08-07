@@ -19,8 +19,12 @@ impl Texture {
         let mut data = Vec::new();
     
         for pixel in img.pixels() {
-            let rgba = pixel.2 .0;
-            data.push(Color::new(rgba[0] as i32, rgba[1] as i32, rgba[2] as i32));
+            let (r, g, b, a) = (pixel.2 .0[0], pixel.2 .0[1], pixel.2 .0[2], pixel.2 .0[3]);
+            if a > 0 { // Verificar si el píxel no es completamente transparente
+                data.push(Color::new(r as i32, g as i32, b as i32));
+            } else {
+                data.push(Color::new(0, 0, 0)); // Fondo transparente
+            }
         }
     
         Texture {
