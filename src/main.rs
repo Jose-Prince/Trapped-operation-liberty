@@ -67,8 +67,10 @@ fn main() {
 
         framebuffer.clear();
 
+        let mut wall_heights = vec![0; framebuffer.get_width()];
+
         // Renderiza el mapa en 3D
-        render3d(&mut framebuffer, &player, &maze, block_size, &texture);
+        render3d(&mut framebuffer, &player, &maze, block_size, &texture, &mut wall_heights);
 
         // Renderiza los enemigos
         for enemy_pos in &enemies_pos {
@@ -77,7 +79,9 @@ fn main() {
                 &player,
                 &enemy_pos,
                 &mut z_buffer,
-                &enemy_texture
+                &enemy_texture,
+                &wall_heights,
+                300.0
             );
         }
 

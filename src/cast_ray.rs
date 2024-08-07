@@ -37,7 +37,7 @@ pub fn cast_ray(
         }
 
         // Verificar si la celda no es un espacio vacío y no es el punto 'p'
-        if maze[j][i] != ' ' && maze[j][i] != 'p' {
+        if maze[j][i] != ' ' && maze[j][i] != 'p' &&maze[j][i] != 'e' {
             return Some(Intersect {
                 x: x as f32,
                 y: y as f32,

@@ -76,7 +76,9 @@ pub fn render_enemy(
     player: &Player,
     pos: &Vec2,
     z_buffer: &mut [f32],
-    enemy_texture: &Texture
+    enemy_texture: &Texture,
+    wall_heights: &[usize],
+    max_sprite_height: f32, // Altura máxima del sprite en la pantalla
 ) {
     let player_a = player.a;
 
@@ -97,12 +99,19 @@ pub fn render_enemy(
     let screen_width = framebuffer.get_width() as f32;
 
     // Calcular el tamaño del sprite en la pantalla
-    let sprite_size = (screen_height / sprite_d) * 100.0;
+    let sprite_size = ((screen_height / sprite_d) * 40.0).min(max_sprite_height);
     let start_x = (screen_width / 2.0) + (sprite_a - player_a) * (screen_height / player.fov) - (sprite_size / 2.0);
-    let start_y = (screen_height / 2.0) - (sprite_size / 2.0);
+
+    // Desplazamiento hacia abajo
+    let offset_down = 25.0; // Ajusta este valor según sea necesario
+
+    // Calcular la posición vertical correcta basándose en las alturas de las paredes
+    let ray_index = ((start_x + sprite_size / 2.0) as usize).min(wall_heights.len() - 1);
+    let floor_y = wall_heights[ray_index] as f32;
+    let start_y = floor_y - sprite_size + offset_down;
 
     let end_x = ((start_x + sprite_size) as usize).min(framebuffer.get_width());
-    let end_y = ((start_y + sprite_size) as usize).min(framebuffer.get_height());
+    let end_y = (floor_y as usize).min(framebuffer.get_height());
     let start_x = start_x.max(0.0) as usize;
     let start_y = start_y.max(0.0) as usize;
 
@@ -125,7 +134,17 @@ pub fn render_enemy(
 }
 
 
-pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, maze: &Vec<Vec<char>>, block_size: f32, texture: &Texture) {
+
+
+
+pub fn render3d(
+    framebuffer: &mut Framebuffer,
+    player: &Player,
+    maze: &Vec<Vec<char>>,
+    block_size: f32,
+    texture: &Texture,
+    wall_heights: &mut Vec<usize>
+) {
     let roof_color = Color::new(102, 102, 102);
     let floor_color = Color::new(187, 187, 187);
 
@@ -151,6 +170,9 @@ pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, maze: &Vec<Vec<c
     framebuffer.polygon(&first_half, roof_color, roof_color);
     framebuffer.polygon(&second_half, floor_color, floor_color);
 
+    wall_heights.clear();
+    wall_heights.resize(num_rays, framebuffer.get_height());
+
     for i in 0..num_rays {
         let current_ray = i as f32 / num_rays as f32; // Ray proportion
         let angle = player.a - (player.fov / 2.0) + (player.fov * current_ray);
@@ -161,6 +183,8 @@ pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, maze: &Vec<Vec<c
 
             let stake_top = (hh - (stake_height / 2.0)) as usize;
             let stake_bottom = (hh + (stake_height / 2.0)) as usize;
+
+            wall_heights[i] = stake_bottom;
 
             let texture_x = ((intersect.x % block_size as f32) / block_size as f32 * texture.width as f32) as usize;
 
