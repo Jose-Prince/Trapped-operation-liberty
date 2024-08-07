@@ -55,12 +55,15 @@ pub fn render_enemies_pos(framebuffer: &mut Framebuffer, file_path: &str) -> Vec
 
     let block_size = std::cmp::min(framebuffer.get_width() / cols, framebuffer.get_height() / rows);
 
-    let mut enemies_pos : Vec<Vec2> = Vec::new();
+    let mut enemies_pos: Vec<Vec2> = Vec::new();
 
     for row in 0..rows {
         for col in 0..cols {
             if maze[row][col] == 'e' {
-                enemies_pos.push(Vec2::new((col * block_size) as f32 + (block_size / 2) as f32, (row * block_size) as f32 + (block_size / 2) as f32));
+                enemies_pos.push(Vec2::new(
+                    (col * block_size) as f32 + (block_size / 2) as f32,
+                    (row * block_size) as f32 + (block_size / 2) as f32,
+                ));
             }
         }
     }
@@ -68,43 +71,61 @@ pub fn render_enemies_pos(framebuffer: &mut Framebuffer, file_path: &str) -> Vec
     enemies_pos
 }
 
-pub fn render_billboard(
+pub fn render_enemy(
     framebuffer: &mut Framebuffer,
-    player_pos: &Vec2,
-    player_angle: f32,
-    enemy_pos: &Vec2,
-    texture: &Texture,
-    fov: f32,
+    player: &Player,
+    pos: &Vec2,
+    z_buffer: &mut [f32],
+    enemy_texture: &Texture
 ) {
-    let dx = enemy_pos.x - player_pos.x;
-    let dy = enemy_pos.y - player_pos.y;
+    let player_a = player.a;
 
-    let distance_to_enemy = (dx * dx + dy * dy).sqrt();
-    let angle_to_enemy = (dy).atan2(dx);
+    // Calcular el ángulo del sprite en relación con la dirección del jugador
+    let sprite_a = (pos.y - player.pos.y).atan2(pos.x - player.pos.x);
 
-    let relative_angle = angle_to_enemy - player_angle;
-    let corrected_distance = distance_to_enemy * relative_angle.cos();
+    if sprite_a < player_a - (player.fov / 2.0) || sprite_a > player_a + (player.fov / 2.0) {
+        return;
+    }
 
-    let hw = framebuffer.get_width() as f32 / 2.0;
-    let hh = framebuffer.get_height() as f32 / 2.0;
-    let distance_to_projection_plane = hw / (fov / 2.0).tan();
+    let sprite_d = ((player.pos.x - pos.x).powi(2) + (player.pos.y - pos.y).powi(2)).sqrt();
+    
+    if sprite_d < 1.0 {
+        return;
+    }
 
-    let enemy_height = (texture.height as f32 * distance_to_projection_plane / corrected_distance).min(hh * 2.0);
-    let enemy_top = (hh - (enemy_height / 2.0)) as isize;
-    let enemy_bottom = (hh + (enemy_height / 2.0)) as isize;
-    let enemy_screen_x = (hw + (hw * relative_angle.tan())).round() as isize;
+    let screen_height = framebuffer.get_height() as f32;
+    let screen_width = framebuffer.get_width() as f32;
 
-    for y in enemy_top..enemy_bottom {
-        let texture_y = (((y - enemy_top) as f32 / (enemy_bottom - enemy_top) as f32) * texture.height as f32) as usize;
-        for x in 0..texture.width {
-            let color = texture.get_color(x, texture_y);
-            framebuffer.set_current_color(color);
-            framebuffer.point(enemy_screen_x + x as isize - texture.width as isize / 2, y);
+    // Calcular el tamaño del sprite en la pantalla
+    let sprite_size = (screen_height / sprite_d) * 100.0;
+    let start_x = (screen_width / 2.0) + (sprite_a - player_a) * (screen_height / player.fov) - (sprite_size / 2.0);
+    let start_y = (screen_height / 2.0) - (sprite_size / 2.0);
+
+    let end_x = ((start_x + sprite_size) as usize).min(framebuffer.get_width());
+    let end_y = ((start_y + sprite_size) as usize).min(framebuffer.get_height());
+    let start_x = start_x.max(0.0) as usize;
+    let start_y = start_y.max(0.0) as usize;
+
+    if end_x <= 0 || start_x >= framebuffer.get_width() || end_y <= 0 || start_y >= framebuffer.get_height() {
+        return;
+    }
+
+    for x in start_x..end_x {
+        for y in start_y..end_y {
+            let tx = (((x - start_x) * enemy_texture.width as usize) / sprite_size as usize) as u32;
+            let ty = (((y - start_y) * enemy_texture.height as usize) / sprite_size as usize) as u32;
+            let color = enemy_texture.get_color(tx as usize, ty as usize);
+
+            if color.to_hex() != 0x980088 { // Ajusta el color hexadecimal según sea necesario
+                framebuffer.set_current_color(color);
+                framebuffer.point(x as isize, y as isize);
+            }
+            
         }
     }
 }
 
-pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, maze: &Vec<Vec<char>>, block_size: usize, texture: &Texture) {
+pub fn render3d(framebuffer: &mut Framebuffer, player: &Player, maze: &Vec<Vec<char>>, block_size: f32, texture: &Texture) {
     let roof_color = Color::new(102, 102, 102);
     let floor_color = Color::new(187, 187, 187);
 

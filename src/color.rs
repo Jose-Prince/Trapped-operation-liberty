@@ -23,19 +23,6 @@ impl Color {
         Color::new(r.into(), g.into(), b.into())
     }
 
-    pub fn from_hex_str(hex_str: &str) -> Result<Color, String> {
-        let hex_str = hex_str.trim_start_matches('#');
-
-        if hex_str.len() != 6 {
-            return Err("Hex string must be exactly 6 characters long".to_string());
-        }
-
-        let hex = u32::from_str_radix(hex_str, 16)
-            .map_err(|_| "Failed to parse hex string".to_string())?;
-
-        Ok(Color::from_hex(hex))
-    }
-
     pub fn to_hex(&self) -> u32 {
         ((self.r as u32) << 16) | ((self.g as u32) << 8) | (self.b as u32)
     }
@@ -77,5 +64,11 @@ impl std::ops::Sub for Color {
         let g = (self.g as i16 - other.g as i16).clamp(0, 255) as u8;
         let b = (self.b as i16 - other.b as i16).clamp(0, 255) as u8;
         Color::new(r.into(), g.into(), b.into())
+    }
+}
+
+impl PartialEq<u32> for Color {
+    fn eq(&self, other: &u32) -> bool {
+        self.to_hex() == *other
     }
 }

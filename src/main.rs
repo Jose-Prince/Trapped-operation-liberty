@@ -15,7 +15,7 @@ use color::Color;
 use player::Player;
 use polygon::Polygon;
 use line::Line;
-use maze::{render, render3d, render_enemies_pos, render_billboard};
+use maze::{render, render3d, render_enemies_pos, render_enemy};
 use minifb::{Window, WindowOptions, Key};
 use std::time::{Duration, Instant};
 use std::f32::consts::PI;
@@ -41,23 +41,24 @@ fn main() {
 
     let file_path = "src/maze.txt";
     let (maze, player_pos) = render(&mut framebuffer, file_path);
-    let enemies_pos = render_enemies_pos(& mut framebuffer, file_path);
+    let enemies_pos = render_enemies_pos(&mut framebuffer, file_path);
     let block_size = std::cmp::min(
         framebuffer.get_width() / maze[0].len(),
         framebuffer.get_height() / maze.len()
-    );
+    ) as f32; // Convert to f32
 
     let mut player = Player::new(player_pos.x, player_pos.y, 0.0, PI / 3.0);
 
-    // Cargar la textura desde un archivo .png
     let texture = Texture::from_file("textures/prison_wall.png");
     let enemy_texture = Texture::from_file("textures/Police.png");
 
     let mut frame_count = 0;
     let start_time = Instant::now();
 
+    // Inicializa el z_buffer
+    let mut z_buffer = vec![f32::INFINITY; framebuffer.get_width()];
+
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        // Obtener la posición del mouse
         if let Some((mouse_x, mouse_y)) = window.get_mouse_pos(minifb::MouseMode::Clamp) {
             player.update_mouse(mouse_x as f32, mouse_y as f32, width as f32, height as f32);
         }
@@ -65,9 +66,20 @@ fn main() {
         player.process_events(&window, &maze, block_size, &mut framebuffer);
 
         framebuffer.clear();
-        
+
+        // Renderiza el mapa en 3D
         render3d(&mut framebuffer, &player, &maze, block_size, &texture);
-        render_billboard(&mut framebuffer, &player.pos, player.a, &enemies_pos[0], &enemy_texture, player.fov);
+
+        // Renderiza los enemigos
+        for enemy_pos in &enemies_pos {
+            render_enemy(
+                &mut framebuffer,
+                &player,
+                &enemy_pos,
+                &mut z_buffer,
+                &enemy_texture
+            );
+        }
 
         frame_count += 1;
         let fps = calculate_fps(start_time, frame_count);

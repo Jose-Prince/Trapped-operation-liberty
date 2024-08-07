@@ -11,7 +11,7 @@ pub fn cast_ray(
     player_pos: &Vec2,
     direction: f32,
     maze: &Vec<Vec<char>>,
-    block_size: usize,
+    block_size: f32,
     draw_line: bool,
     mut framebuffer: Option<&mut Framebuffer>,
 ) -> Option<Intersect> {
@@ -25,8 +25,11 @@ pub fn cast_ray(
         let x = (player_pos.x + cos * d) as usize;
         let y = (player_pos.y + sin * d) as usize;
 
-        let i = x / block_size;
-        let j = y / block_size;
+        // Convertir block_size a usize para la división
+        let block_size_usize = block_size as usize;
+
+        let i = (x as f32 / block_size).floor() as usize;
+        let j = (y as f32 / block_size).floor() as usize;
 
         // Verificar que los índices están dentro de los límites
         if j >= maze.len() || i >= maze[0].len() {
