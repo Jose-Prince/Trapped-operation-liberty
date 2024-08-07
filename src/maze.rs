@@ -79,20 +79,32 @@ pub fn render_enemy(
     enemy_texture: &Texture,
     wall_heights: &[usize],
     max_sprite_height: f32, // Altura máxima del sprite en la pantalla
+    maze: &Vec<Vec<char>>,
+    block_size: f32
 ) {
     let player_a = player.a;
 
     // Calcular el ángulo del sprite en relación con la dirección del jugador
     let sprite_a = (pos.y - player.pos.y).atan2(pos.x - player.pos.x);
 
-    if sprite_a < player_a - (player.fov / 2.0) || sprite_a > player_a + (player.fov / 2.0) {
+    // Normalizar el ángulo del sprite
+    let normalized_sprite_a = (sprite_a - player_a).atan2(1.0);
+
+    if normalized_sprite_a < -player.fov / 2.0 || normalized_sprite_a > player.fov / 2.0 {
         return;
     }
 
     let sprite_d = ((player.pos.x - pos.x).powi(2) + (player.pos.y - pos.y).powi(2)).sqrt();
-    
+
     if sprite_d < 1.0 {
         return;
+    }
+
+    // Chequear si hay paredes entre el jugador y el enemigo
+    if let Some(intersect) = cast_ray(&player.pos, sprite_a, maze, block_size, false, None) {
+        if intersect.distance < sprite_d {
+            return; // Hay una pared bloqueando al enemigo
+        }
     }
 
     let screen_height = framebuffer.get_height() as f32;
@@ -132,9 +144,6 @@ pub fn render_enemy(
         }
     }
 }
-
-
-
 
 
 pub fn render3d(

@@ -81,7 +81,9 @@ fn main() {
                 &mut z_buffer,
                 &enemy_texture,
                 &wall_heights,
-                300.0
+                300.0,
+                &maze,
+                block_size
             );
         }
 
