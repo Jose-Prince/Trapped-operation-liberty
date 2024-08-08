@@ -43,7 +43,7 @@ fn main() {
     });
 
     let file_path = "src/maze.txt";
-    let (maze, player_pos) = render(&mut framebuffer, file_path);
+    let (maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
     let enemies_pos = render_enemies_pos(&mut framebuffer, file_path);
     let block_size = std::cmp::min(
         framebuffer.get_width() / maze[0].len(),
@@ -81,6 +81,7 @@ fn main() {
 
         let mut wall_heights = vec![0; framebuffer.get_width()];
 
+        
         // Renderiza el mapa en 3D
         render3d(&mut framebuffer, &player, &maze, block_size, &texture, &mut wall_heights);
 
@@ -98,14 +99,15 @@ fn main() {
                 block_size
             );
         }
-
+        render(&mut framebuffer, file_path, 0.5);
+        
         let delta_time = 1.0 / 30.0;
-
+        
         // Actualiza todos los enemigos
         for enemy in &mut enemies {
             enemy.update(delta_time, &maze, block_size);
         }
-
+        
         frame_count += 1;
         let fps = calculate_fps(start_time, frame_count);
         

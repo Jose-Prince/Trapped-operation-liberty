@@ -11,23 +11,27 @@ use crate::texture::Texture;
 
 use nalgebra_glm::Vec2;
 
-fn draw_cell(framebuffer: &mut Framebuffer, x0: usize, y0: usize, block_size: usize, cell: char) {
-    match cell {
-        '+' => framebuffer.set_current_color(Color::new(255, 0, 0)), // Paredes
-        '|' | '-' => framebuffer.set_current_color(Color::new(255, 0, 0)), // Paredes
-        'g' => framebuffer.set_current_color(Color::new(255, 255, 0)), // Meta
-        ' ' => framebuffer.set_current_color(Color::new(255, 255, 255)), // Espacios vacíos
-        _ => framebuffer.set_current_color(Color::new(0, 0, 0)), // Color por defecto para caracteres desconocidos
-    }
+fn draw_cell(framebuffer: &mut Framebuffer, x0: usize, y0: usize, block_size: usize, cell: char, opacity: f32) {
+    let color = match cell {
+        '+' => Color::new(255, 0, 0),   // Paredes
+        '|' | '-' | 'p' => Color::new(255, 0, 0), // Paredes
+        'g' => Color::new(255, 255, 0), // Meta
+        ' ' => Color::new(255, 255, 255), // Espacios vacíos
+        'p' => Color::new(255, 255, 255), // Espacio del jugador
+        _ => Color::new(0, 0, 0),        // Color por defecto para caracteres desconocidos
+    };
 
     for y in 0..block_size {
         for x in 0..block_size {
+            let bg_color = framebuffer.get_pixel_color((x0 + x) as isize, (y0 + y) as isize);
+            let blended_color = color.blend(bg_color.expect("REASON"), opacity);
+            framebuffer.set_current_color(blended_color);
             framebuffer.point((x0 + x) as isize, (y0 + y) as isize);
         }
     }
 }
 
-pub fn render(framebuffer: &mut Framebuffer, file_path: &str) -> (Vec<Vec<char>>, Vec2) {
+pub fn render(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> (Vec<Vec<char>>, Vec2) {
     let maze = load_maze(file_path);
     let rows = maze.len();
     let cols = maze[0].len();
@@ -41,13 +45,14 @@ pub fn render(framebuffer: &mut Framebuffer, file_path: &str) -> (Vec<Vec<char>>
             if maze[row][col] == 'p' {
                 player_pos = Vec2::new((col * block_size) as f32 + (block_size / 2) as f32, (row * block_size) as f32 + (block_size / 2) as f32);
             } else {
-                draw_cell(framebuffer, col * block_size, row * block_size, block_size, maze[row][col]);
+                draw_cell(framebuffer, col * block_size, row * block_size, block_size, maze[row][col], opacity);
             }
         }
     }
 
     (maze, player_pos)
 }
+
 
 pub fn render_enemies_pos(framebuffer: &mut Framebuffer, file_path: &str) -> Vec<Vec2> {
     let maze = load_maze(file_path);

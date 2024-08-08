@@ -100,6 +100,15 @@ impl Framebuffer {
         }
     }
 
+    pub fn get_pixel_color(&self, x: isize, y: isize) -> Option<Color> {
+        if x >= 0 && y >= 0 && (x as usize) < self.width && (y as usize) < self.height {
+            let index = (self.width * y as usize) + x as usize;
+            Some(Color::from_hex(self.buffer[index]))
+        } else {
+            None
+        }
+    }
+
     pub fn draw_text(&mut self, x: usize, y: usize, text: &str, color: Color) {
         // Cargar la fuente desde el archivo
         let font_data = include_bytes!("../fonts/Meditative.ttf");
