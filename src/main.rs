@@ -100,7 +100,7 @@ fn main() {
 
         // Actualiza todos los enemigos
         for enemy in &mut enemies {
-            enemy.update(delta_time);
+            enemy.update(delta_time, &maze, block_size);
         }
 
         frame_count += 1;
