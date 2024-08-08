@@ -50,6 +50,9 @@ fn main() {
         framebuffer.get_height() / maze.len()
     ) as f32;
 
+    let mut show_fps: bool = false;
+    let mut f_key_pressed: bool = false;
+
     let mut enemies: Vec<Enemy> = Vec::new();
 
     for pos in &enemies_pos {
@@ -105,7 +108,13 @@ fn main() {
 
         frame_count += 1;
         let fps = calculate_fps(start_time, frame_count);
-        framebuffer.draw_text(width - 100, 10, &format!("FPS: {:.2}", fps), Color::new(0, 255, 0));
+        
+        if window.is_key_down(Key::F) {
+            framebuffer.draw_text(width - 100, 10, &format!("FPS: {:.2}", fps), Color::new(0, 255, 0));
+        } else {
+            framebuffer.draw_text(width - 100, 10, "", Color::new(0, 255, 0));
+        }
+
 
         window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
         std::thread::sleep(Duration::from_millis(16));

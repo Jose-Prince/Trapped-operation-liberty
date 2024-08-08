@@ -116,7 +116,15 @@ pub fn render_enemy(
     let start_x = (screen_width / 2.0) + (sprite_a - player_a) * (screen_height / player.fov) - (sprite_size / 2.0);
 
     // Desplazamiento hacia abajo
-    let offset_down = 25.0; // Ajusta este valor según sea necesario
+    let min_offset_down = 25.0;
+    let max_offset_down = 200.0; // Ajusta el valor máximo según sea necesario
+    let max_distance = 1.0; // Ajusta la distancia máxima según sea necesario
+
+    let offset_down = if sprite_d <= max_distance {
+        min_offset_down + (max_offset_down - min_offset_down) * (1.0 - sprite_d / max_distance)
+    } else {
+        min_offset_down
+    };
 
     // Calcular la posición vertical correcta basándose en las alturas de las paredes
     let ray_index = ((start_x + sprite_size / 2.0) as usize).min(wall_heights.len() - 1);
