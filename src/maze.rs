@@ -14,10 +14,10 @@ use nalgebra_glm::Vec2;
 fn draw_cell(framebuffer: &mut Framebuffer, x0: usize, y0: usize, block_size: usize, cell: char, opacity: f32) {
     let color = match cell {
         '+' => Color::new(255, 0, 0),   // Paredes
-        '|' | '-' | 'p' => Color::new(255, 0, 0), // Paredes
+        '|' | '-' => Color::new(255, 0, 0), // Paredes
         'g' => Color::new(255, 255, 0), // Meta
         ' ' => Color::new(255, 255, 255), // Espacios vacíos
-        'p' => Color::new(255, 255, 255), // Espacio del jugador
+        'p' | 'e' => Color::new(255, 255, 255), // Espacio del jugador
         _ => Color::new(0, 0, 0),        // Color por defecto para caracteres desconocidos
     };
 
@@ -44,6 +44,7 @@ pub fn render(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> (
         for col in 0..cols {
             if maze[row][col] == 'p' {
                 player_pos = Vec2::new((col * block_size) as f32 + (block_size / 2) as f32, (row * block_size) as f32 + (block_size / 2) as f32);
+                draw_cell(framebuffer, col * block_size, row * block_size, block_size, maze[row][col], opacity);
             } else {
                 draw_cell(framebuffer, col * block_size, row * block_size, block_size, maze[row][col], opacity);
             }
@@ -107,7 +108,7 @@ pub fn render_enemy(
     }
 
     // Chequear si hay paredes entre el jugador y el enemigo
-    if let Some(intersect) = cast_ray(&player.pos, sprite_a, maze, block_size, false, None) {
+    if let Some(intersect) = cast_ray(&player.pos, sprite_a, maze, block_size, true, None) {
         if intersect.distance < sprite_d {
             return; // Hay una pared bloqueando al enemigo
         }
@@ -227,4 +228,32 @@ pub fn is_wall(maze: &Vec<Vec<char>>, x: usize, y: usize) -> bool {
     } else {
         false
     }
+}
+
+// Función para dibujar al jugador en el minimapa
+pub fn draw_player_position(framebuffer: &mut Framebuffer, player_pos: Vec2, block_size: usize) {
+    let player_size = 3;
+    let color = Color::new(0, 255, 0); // Verde para el jugador
+
+    for y in -(player_size as isize)..=(player_size as isize) {
+        for x in -(player_size as isize)..=(player_size as isize) {
+            framebuffer.set_current_color(color);
+            framebuffer.point((player_pos.x as isize + x), (player_pos.y as isize + y));
+        }
+    }
+}
+
+// Función para dibujar la posición de los enemigos en el minimapa
+pub fn draw_enemies_position(framebuffer: &mut Framebuffer, enemies_pos: &Vec2, block_size: usize) {
+    let enemy_size = 3;
+    let color = Color::new(255, 0, 0); // Rojo para los enemigos
+
+
+        for y in -(enemy_size as isize)..=(enemy_size as isize) {
+            for x in -(enemy_size as isize)..=(enemy_size as isize) {
+                framebuffer.set_current_color(color);
+                framebuffer.point((enemies_pos.x as isize + x), (enemies_pos.y as isize + y));
+            }
+        }
+    
 }

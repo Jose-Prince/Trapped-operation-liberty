@@ -17,7 +17,7 @@ use color::Color;
 use player::Player;
 use polygon::Polygon;
 use line::Line;
-use maze::{render, render3d, render_enemies_pos, render_enemy};
+use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position};
 use minifb::{Window, WindowOptions, Key};
 use nalgebra_glm::Vec2;
 use std::time::{Duration, Instant};
@@ -106,7 +106,15 @@ fn main() {
         // Actualiza todos los enemigos
         for enemy in &mut enemies {
             enemy.update(delta_time, &maze, block_size);
+            draw_enemies_position(&mut framebuffer, &enemy.get_pos(), block_size as usize);
         }
+
+        let (maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
+
+        // Dibuja la posición del jugador en el minimapa
+        draw_player_position(&mut framebuffer, player.get_pos(), block_size as usize);
+
+        // Dibuja las posiciones de los enemigos en el minimapa
         
         frame_count += 1;
         let fps = calculate_fps(start_time, frame_count);
