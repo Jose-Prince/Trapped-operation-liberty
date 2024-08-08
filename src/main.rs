@@ -8,7 +8,9 @@ mod cast_ray;
 mod texture;
 mod polygon;
 mod line;
+mod enemy;
 
+use enemy::Enemy;
 use framebuffer::Framebuffer;
 use texture::Texture;
 use color::Color;
@@ -17,6 +19,7 @@ use polygon::Polygon;
 use line::Line;
 use maze::{render, render3d, render_enemies_pos, render_enemy};
 use minifb::{Window, WindowOptions, Key};
+use nalgebra_glm::Vec2;
 use std::time::{Duration, Instant};
 use std::f32::consts::PI;
 
@@ -45,7 +48,13 @@ fn main() {
     let block_size = std::cmp::min(
         framebuffer.get_width() / maze[0].len(),
         framebuffer.get_height() / maze.len()
-    ) as f32; // Convert to f32
+    ) as f32;
+
+    let mut enemies: Vec<Enemy> = Vec::new();
+
+    for pos in &enemies_pos {
+        enemies.push(Enemy::new(*pos, Vec2::new(0.0, 1.0), -10.0));
+    }
 
     let mut player = Player::new(player_pos.x, player_pos.y, 0.0, PI / 3.0);
 
@@ -73,11 +82,11 @@ fn main() {
         render3d(&mut framebuffer, &player, &maze, block_size, &texture, &mut wall_heights);
 
         // Renderiza los enemigos
-        for enemy_pos in &enemies_pos {
+        for enemy in &enemies {
             render_enemy(
                 &mut framebuffer,
                 &player,
-                &enemy_pos,
+                &enemy.get_pos(),
                 &mut z_buffer,
                 &enemy_texture,
                 &wall_heights,
@@ -85,6 +94,13 @@ fn main() {
                 &maze,
                 block_size
             );
+        }
+
+        let delta_time = 1.0 / 30.0;
+
+        // Actualiza todos los enemigos
+        for enemy in &mut enemies {
+            enemy.update(delta_time);
         }
 
         frame_count += 1;

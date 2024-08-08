@@ -1,6 +1,7 @@
 use crate::polygon::Polygon;
 use crate::line::Line;
 
+use crate::enemy::Enemy;
 use crate::fileReader::load_maze;
 use crate::framebuffer::Framebuffer;
 use crate::color::Color;
