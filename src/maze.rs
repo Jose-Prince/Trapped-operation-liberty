@@ -109,7 +109,7 @@ pub fn render_enemy(
     }
 
     // Chequear si hay paredes entre el jugador y el enemigo
-    if let Some(intersect) = cast_ray(&player.pos, sprite_a, maze, block_size, true, None) {
+    if let Some(intersect) = cast_ray(&player.pos, sprite_a, maze, block_size, false, 1000.0, None) {
         if intersect.distance < sprite_d {
             return; // Hay una pared bloqueando al enemigo
         }
@@ -201,7 +201,7 @@ pub fn render3d(
     for i in 0..num_rays {
         let current_ray = i as f32 / num_rays as f32; // Ray proportion
         let angle = player.a - (player.fov / 2.0) + (player.fov * current_ray);
-        if let Some(intersect) = cast_ray(&player.pos, angle, maze, block_size, false, None) {
+        if let Some(intersect) = cast_ray(&player.pos, angle, maze, block_size, false, 1000.0, None) {
             let distance_to_wall = intersect.distance; // Distance to wall
             let corrected_distance = distance_to_wall * (angle - player.a).cos(); // Correct fish-eye effect
             let stake_height = (block_size as f32 * distance_to_projection_plane / corrected_distance).min(hh * 2.0);
@@ -262,6 +262,6 @@ pub fn draw_enemy_fov(framebuffer: &mut Framebuffer, enemy: &Enemy, num_rays : u
     for i in 0..num_rays{
         let current_ray = i as f32 / num_rays as f32;
         let angle = enemy.get_a() - ((PI / 8.0) / 2.0) + ((PI / 8.0) * current_ray);
-        cast_ray(&enemy.get_pos(), -angle, &maze, block_size, true, Some(framebuffer));
+        cast_ray(&enemy.get_pos(), -angle, &maze, block_size, true, 100.0,Some(framebuffer));
     }
 }

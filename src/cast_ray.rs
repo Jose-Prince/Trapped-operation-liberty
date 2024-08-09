@@ -13,10 +13,10 @@ pub fn cast_ray(
     maze: &Vec<Vec<char>>,
     block_size: f32,
     draw_line: bool,
+    max_distance: f32,
     mut framebuffer: Option<&mut Framebuffer>,
 ) -> Option<Intersect> {
     let mut d = 0.0;
-    let max_distance = 1000.0; // Límite máximo de distancia
 
     let cos = direction.cos();
     let sin = direction.sin();

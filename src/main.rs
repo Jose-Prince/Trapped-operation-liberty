@@ -107,7 +107,7 @@ fn main() {
         for enemy in &mut enemies {            
             enemy.update(delta_time, &maze, block_size);
             draw_enemies_position(&mut framebuffer, &enemy.get_pos(), block_size as usize);
-            draw_enemy_fov(&mut framebuffer, &enemy, 10, &maze, block_size);
+            draw_enemy_fov(&mut framebuffer, &enemy, 30, &maze, block_size);
         }
 
         let (maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
