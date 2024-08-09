@@ -27,6 +27,10 @@ impl Color {
         ((self.r as u32) << 16) | ((self.g as u32) << 8) | (self.b as u32)
     }
 
+    pub fn match_rgb(&self) -> bool {
+        self.g == 166 && self.b == 114 && self.r == 5
+    }
+
     pub fn blend(self, other: Color, opacity: f32) -> Color {
         let r = (self.r as f32 * (1.0 - opacity) + other.r as f32 * opacity).clamp(0.0, 255.0) as u8;
         let g = (self.g as f32 * (1.0 - opacity) + other.g as f32 * opacity).clamp(0.0, 255.0) as u8;

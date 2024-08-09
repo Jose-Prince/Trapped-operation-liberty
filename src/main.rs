@@ -99,7 +99,7 @@ fn main() {
                 block_size
             );
         }
-        minimap(&mut framebuffer, file_path, 0.5);
+        let minimap = minimap(&mut framebuffer, file_path, 0.5);
         
         let delta_time = 1.0 / 30.0;
         

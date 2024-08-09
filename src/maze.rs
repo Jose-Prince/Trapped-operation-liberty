@@ -5,7 +5,7 @@ use crate::enemy::Enemy;
 use crate::fileReader::load_maze;
 use crate::framebuffer::Framebuffer;
 use crate::color::Color;
-use crate::cast_ray::cast_ray;
+use crate::cast_ray::{cast_ray,cast_ray_enemy};
 use crate::player::Player;
 use crate::texture::Texture;
 
@@ -14,11 +14,11 @@ use std::f32::consts::PI;
 
 fn draw_cell(framebuffer: &mut Framebuffer, x0: usize, y0: usize, block_size: usize, cell: char, opacity: f32) {
     let color = match cell {
-        '+' => Color::new(255, 0, 0),   // Paredes
-        '|' | '-' => Color::new(255, 0, 0), // Paredes
+        '+' => Color::new(5, 166, 114),   // Paredes
+        '|' | '-' => Color::new(5, 166, 114), // Paredes
         'g' => Color::new(255, 255, 0), // Meta
-        ' ' => Color::new(255, 255, 255), // Espacios vacíos
-        'p' | 'e' => Color::new(255, 255, 255), // Espacio del jugador
+        ' ' => Color::new(0, 0, 0), // Espacios vacíos
+        'p' | 'e' => Color::new(0, 0, 0), // Espacio del jugador
         _ => Color::new(0, 0, 0),        // Color por defecto para caracteres desconocidos
     };
 
@@ -26,7 +26,11 @@ fn draw_cell(framebuffer: &mut Framebuffer, x0: usize, y0: usize, block_size: us
         for x in 0..block_size {
             let bg_color = framebuffer.get_pixel_color((x0 + x) as isize, (y0 + y) as isize);
             let blended_color = color.blend(bg_color.expect("REASON"), opacity);
-            framebuffer.set_current_color(blended_color);
+            if (cell == '|' || cell == '-' || cell == '+') {
+                framebuffer.set_current_color(Color::new(5, 166, 114));
+            } else {
+                framebuffer.set_current_color(blended_color);
+            }
             framebuffer.point((x0 + x) as isize, (y0 + y) as isize);
         }
     }
@@ -230,26 +234,26 @@ pub fn is_wall(maze: &Vec<Vec<char>>, x: usize, y: usize) -> bool {
 
 // Función para dibujar al jugador en el minimapa
 pub fn draw_player_position(framebuffer: &mut Framebuffer, player_pos: Vec2, block_size: usize) {
-    let player_size = 3;
+    let player_size = 2;
     let color = Color::new(0, 255, 0); // Verde para el jugador
 
     for y in -(player_size as isize)..=(player_size as isize) {
         for x in -(player_size as isize)..=(player_size as isize) {
             framebuffer.set_current_color(color);
-            framebuffer.point((player_pos.x as isize + x), (player_pos.y as isize + y));
+            framebuffer.point(((player_pos.x * 0.2) as isize + x), ((player_pos.y * 0.2) as isize + y));
         }
     }
 }
 
 // Función para dibujar la posición de los enemigos en el minimapa
 pub fn draw_enemies_position(framebuffer: &mut Framebuffer, enemies_pos: &Vec2, block_size: usize) {
-    let enemy_size = 3;
-    let color = Color::new(255, 0, 0); // Rojo para los enemigos
+    let enemy_size = 2;
+    let color = Color::new(0, 0, 255); // Rojo para los enemigos
 
     for y in -(enemy_size as isize)..=(enemy_size as isize) {
         for x in -(enemy_size as isize)..=(enemy_size as isize) {
             framebuffer.set_current_color(color);
-            framebuffer.point((enemies_pos.x as isize + x), (enemies_pos.y as isize + y));
+            framebuffer.point(((enemies_pos.x * 0.2) as isize + x), ((enemies_pos.y * 0.2) as isize + y));
         }
     }
     
@@ -259,11 +263,11 @@ pub fn draw_enemy_fov(framebuffer: &mut Framebuffer, enemy: &Enemy, num_rays : u
     for i in 0..num_rays{
         let current_ray = i as f32 / num_rays as f32;
         let angle = enemy.get_a() - ((PI / 8.0) / 2.0) + ((PI / 8.0) * current_ray);
-        cast_ray(&enemy.get_pos(), -angle, &maze, block_size, true, 100.0,Some(framebuffer));
+        cast_ray_enemy(&enemy.get_pos(), -angle, &maze, block_size, true, 100.0, 0.2,Some(framebuffer));
     }
 }
 
-pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> (Vec<Vec<char>>, Vec2) {
+pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> Vec<Vec<char>> {
     let maze = load_maze(file_path);
     let rows = maze.len();
     let cols = maze[0].len();
@@ -287,5 +291,5 @@ pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> 
         }
     }
 
-    (maze, player_pos)
+    maze
 }
