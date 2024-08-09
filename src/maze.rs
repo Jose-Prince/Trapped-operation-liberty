@@ -10,6 +10,7 @@ use crate::player::Player;
 use crate::texture::Texture;
 
 use nalgebra_glm::Vec2;
+use std::f32::consts::PI;
 
 fn draw_cell(framebuffer: &mut Framebuffer, x0: usize, y0: usize, block_size: usize, cell: char, opacity: f32) {
     let color = match cell {
@@ -248,12 +249,19 @@ pub fn draw_enemies_position(framebuffer: &mut Framebuffer, enemies_pos: &Vec2, 
     let enemy_size = 3;
     let color = Color::new(255, 0, 0); // Rojo para los enemigos
 
-
-        for y in -(enemy_size as isize)..=(enemy_size as isize) {
-            for x in -(enemy_size as isize)..=(enemy_size as isize) {
-                framebuffer.set_current_color(color);
-                framebuffer.point((enemies_pos.x as isize + x), (enemies_pos.y as isize + y));
-            }
+    for y in -(enemy_size as isize)..=(enemy_size as isize) {
+        for x in -(enemy_size as isize)..=(enemy_size as isize) {
+            framebuffer.set_current_color(color);
+            framebuffer.point((enemies_pos.x as isize + x), (enemies_pos.y as isize + y));
         }
+    }
     
+}
+
+pub fn draw_enemy_fov(framebuffer: &mut Framebuffer, enemy: &Enemy, num_rays : usize,  maze: &Vec<Vec<char>>, block_size: f32) {
+    for i in 0..num_rays{
+        let current_ray = i as f32 / num_rays as f32;
+        let angle = enemy.get_a() - ((PI / 8.0) / 2.0) + ((PI / 8.0) * current_ray);
+        cast_ray(&enemy.get_pos(), -angle, &maze, block_size, true, Some(framebuffer));
+    }
 }

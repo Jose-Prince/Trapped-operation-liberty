@@ -17,7 +17,7 @@ use color::Color;
 use player::Player;
 use polygon::Polygon;
 use line::Line;
-use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position};
+use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position, draw_enemy_fov};
 use minifb::{Window, WindowOptions, Key};
 use nalgebra_glm::Vec2;
 use std::time::{Duration, Instant};
@@ -56,7 +56,7 @@ fn main() {
     let mut enemies: Vec<Enemy> = Vec::new();
 
     for pos in &enemies_pos {
-        enemies.push(Enemy::new(*pos, Vec2::new(0.0, 1.0), -10.0));
+        enemies.push(Enemy::new(*pos, PI/2.0, -10.0, 20.0, (framebuffer.get_height()) as f32));
     }
 
     let mut player = Player::new(player_pos.x, player_pos.y, 0.0, PI / 3.0);
@@ -104,9 +104,10 @@ fn main() {
         let delta_time = 1.0 / 30.0;
         
         // Actualiza todos los enemigos
-        for enemy in &mut enemies {
+        for enemy in &mut enemies {            
             enemy.update(delta_time, &maze, block_size);
             draw_enemies_position(&mut framebuffer, &enemy.get_pos(), block_size as usize);
+            draw_enemy_fov(&mut framebuffer, &enemy, 10, &maze, block_size);
         }
 
         let (maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
@@ -124,7 +125,6 @@ fn main() {
         } else {
             framebuffer.draw_text(width - 100, 10, "", Color::new(0, 255, 0));
         }
-
 
         window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
         std::thread::sleep(Duration::from_millis(16));
