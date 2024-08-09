@@ -17,7 +17,7 @@ use color::Color;
 use player::Player;
 use polygon::Polygon;
 use line::Line;
-use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position, draw_enemy_fov};
+use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position, draw_enemy_fov, minimap};
 use minifb::{Window, WindowOptions, Key};
 use nalgebra_glm::Vec2;
 use std::time::{Duration, Instant};
@@ -99,7 +99,7 @@ fn main() {
                 block_size
             );
         }
-        render(&mut framebuffer, file_path, 0.5);
+        minimap(&mut framebuffer, file_path, 0.5);
         
         let delta_time = 1.0 / 30.0;
         

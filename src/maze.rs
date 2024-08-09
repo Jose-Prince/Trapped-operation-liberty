@@ -45,10 +45,7 @@ pub fn render(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> (
         for col in 0..cols {
             if maze[row][col] == 'p' {
                 player_pos = Vec2::new((col * block_size) as f32 + (block_size / 2) as f32, (row * block_size) as f32 + (block_size / 2) as f32);
-                draw_cell(framebuffer, col * block_size, row * block_size, block_size, maze[row][col], opacity);
-            } else {
-                draw_cell(framebuffer, col * block_size, row * block_size, block_size, maze[row][col], opacity);
-            }
+            } 
         }
     }
 
@@ -264,4 +261,31 @@ pub fn draw_enemy_fov(framebuffer: &mut Framebuffer, enemy: &Enemy, num_rays : u
         let angle = enemy.get_a() - ((PI / 8.0) / 2.0) + ((PI / 8.0) * current_ray);
         cast_ray(&enemy.get_pos(), -angle, &maze, block_size, true, 100.0,Some(framebuffer));
     }
+}
+
+pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> (Vec<Vec<char>>, Vec2) {
+    let maze = load_maze(file_path);
+    let rows = maze.len();
+    let cols = maze[0].len();
+
+    // Escala para hacer el minimapa más pequeño (ajusta el factor según sea necesario)
+    let scale_factor = 0.2;
+    let block_size = std::cmp::min(framebuffer.get_width() / cols, framebuffer.get_height() / rows);
+    let scaled_block_size = (block_size as f32 * scale_factor) as usize;
+
+    let mut player_pos = Vec2::new(0.0, 0.0);
+
+    for row in 0..rows {
+        for col in 0..cols {
+            let x0 = col * scaled_block_size;
+            let y0 = row * scaled_block_size;
+
+            if maze[row][col] == 'p' {
+                player_pos = Vec2::new(x0 as f32 + (scaled_block_size / 2) as f32, y0 as f32 + (scaled_block_size / 2) as f32);
+            }
+            draw_cell(framebuffer, x0, y0, scaled_block_size, maze[row][col], opacity);
+        }
+    }
+
+    (maze, player_pos)
 }
