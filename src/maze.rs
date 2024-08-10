@@ -5,7 +5,7 @@ use crate::enemy::Enemy;
 use crate::fileReader::load_maze;
 use crate::framebuffer::Framebuffer;
 use crate::color::Color;
-use crate::cast_ray::{cast_ray,cast_ray_enemy};
+use crate::cast_ray::{cast_ray,cast_ray_enemy, cast_ray_2dplayer};
 use crate::player::Player;
 use crate::texture::Texture;
 
@@ -240,7 +240,7 @@ pub fn draw_player_position(framebuffer: &mut Framebuffer, player_pos: Vec2, blo
     for y in -(player_size as isize)..=(player_size as isize) {
         for x in -(player_size as isize)..=(player_size as isize) {
             framebuffer.set_current_color(color);
-            framebuffer.point(((player_pos.x * 0.2) as isize + x), ((player_pos.y * 0.2) as isize + y));
+            framebuffer.point(((player_pos.x * 0.35) as isize + x), ((player_pos.y * 0.35) as isize + y));
         }
     }
 }
@@ -253,17 +253,25 @@ pub fn draw_enemies_position(framebuffer: &mut Framebuffer, enemies_pos: &Vec2, 
     for y in -(enemy_size as isize)..=(enemy_size as isize) {
         for x in -(enemy_size as isize)..=(enemy_size as isize) {
             framebuffer.set_current_color(color);
-            framebuffer.point(((enemies_pos.x * 0.2) as isize + x), ((enemies_pos.y * 0.2) as isize + y));
+            framebuffer.point(((enemies_pos.x * 0.35) as isize + x), ((enemies_pos.y * 0.35) as isize + y));
         }
     }
     
+}
+
+pub fn draw_2dplayer_fov(framebuffer: &mut Framebuffer, player: &mut Player, num_rays : usize,  maze: &Vec<Vec<char>>, block_size: f32) {
+    for i in 0..num_rays{
+        let current_ray = i as f32 / num_rays as f32;
+        let angle = player.get_a() - ((PI / 8.0) / 2.0) + ((PI / 8.0) * current_ray);
+        cast_ray_enemy(&player.get_pos(), -angle, &maze, block_size, true, 100.0, 0.35,Some(framebuffer));
+    }
 }
 
 pub fn draw_enemy_fov(framebuffer: &mut Framebuffer, enemy: &Enemy, num_rays : usize,  maze: &Vec<Vec<char>>, block_size: f32) {
     for i in 0..num_rays{
         let current_ray = i as f32 / num_rays as f32;
         let angle = enemy.get_a() - ((PI / 8.0) / 2.0) + ((PI / 8.0) * current_ray);
-        cast_ray_enemy(&enemy.get_pos(), -angle, &maze, block_size, true, 100.0, 0.2,Some(framebuffer));
+        cast_ray_enemy(&enemy.get_pos(), -angle, &maze, block_size, true, 100.0, 0.35,Some(framebuffer));
     }
 }
 
@@ -273,7 +281,7 @@ pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> 
     let cols = maze[0].len();
 
     // Escala para hacer el minimapa más pequeño (ajusta el factor según sea necesario)
-    let scale_factor = 0.2;
+    let scale_factor = 0.35;
     let block_size = std::cmp::min(framebuffer.get_width() / cols, framebuffer.get_height() / rows);
     let scaled_block_size = (block_size as f32 * scale_factor) as usize;
 

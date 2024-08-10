@@ -30,6 +30,10 @@ impl Player {
         self.pos
     } 
 
+    pub fn get_a(&mut self) -> f32 {
+        self.a
+    }
+
     pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: f32, framebuffer: &mut Framebuffer) {
         const MOVE_SPEED: f32 = 5.0;
         const ROTATION_SPEED: f32 = std::f32::consts::PI / 30.0;

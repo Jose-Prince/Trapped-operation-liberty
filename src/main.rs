@@ -17,7 +17,7 @@ use color::Color;
 use player::Player;
 use polygon::Polygon;
 use line::Line;
-use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position, draw_enemy_fov, minimap};
+use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position, draw_enemy_fov, minimap, draw_2dplayer_fov};
 use minifb::{Window, WindowOptions, Key};
 use nalgebra_glm::Vec2;
 use std::time::{Duration, Instant};
@@ -114,6 +114,8 @@ fn main() {
 
         // Dibuja la posición del jugador en el minimapa
         draw_player_position(&mut framebuffer, player.get_pos(), block_size as usize);
+        draw_2dplayer_fov(&mut framebuffer, &mut player, 10, &maze, block_size);
+
 
         // Dibuja las posiciones de los enemigos en el minimapa
         
