@@ -144,34 +144,22 @@ pub fn cast_ray_2dplayer(
     let sin = direction.sin();
 
     loop {
-        // Aplicar el desplazamiento correctamente
-        let x = (player_pos.x + cos * d) as usize; // Aquí ya no se multiplica por `scale`
-        let y = (player_pos.y + sin * d) as usize;
+        let x = player_pos.x + cos * d;
+        let y = player_pos.y + sin * d;
 
-        let i = (x as f32 / block_size).floor() as usize;
-        let j = (y as f32 / block_size).floor() as usize;
+        let i = (x / block_size).floor() as usize;
+        let j = (y / block_size).floor() as usize;
 
         if j >= maze.len() || i >= maze[0].len() {
             return None;
         }
 
-        if let Some(fb) = framebuffer.as_deref() {
-            if let Some(hex_color) = fb.get_point(x as isize, y as isize) {
-                let r = ((hex_color >> 16) & 0xFF) as i32;
-                let g = ((hex_color >> 8) & 0xFF) as i32;
-                let b = (hex_color & 0xFF) as i32;
-                
-                let color = Color::new(r, g, b);
-
-                // Verificar si el color es solo rojo
-                if color.match_rgb() {
-                    return Some(Intersect {
-                        x: x as f32,
-                        y: y as f32,
-                        distance: d,
-                    });
-                }
-            }
+        if maze[j][i] != ' ' && maze[j][i] != 'p' {
+            return Some(Intersect {
+                x,
+                y,
+                distance: d,
+            });
         }
 
         if draw_line {

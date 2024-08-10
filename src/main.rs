@@ -23,6 +23,8 @@ use nalgebra_glm::Vec2;
 use std::time::{Duration, Instant};
 use std::f32::consts::PI;
 
+use crate::cast_ray::Intersect;
+
 fn calculate_fps(start_time: Instant, frame_count: usize) -> f64 {
     let duration = start_time.elapsed().as_secs_f64();
     frame_count as f64 / duration
@@ -99,7 +101,7 @@ fn main() {
                 block_size
             );
         }
-        let minimap = minimap(&mut framebuffer, file_path, 0.5);
+        let minimap = minimap(&mut framebuffer, file_path, 0.5, &mut player);
         
         let delta_time = 1.0 / 30.0;
         

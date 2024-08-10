@@ -8,6 +8,7 @@ use crate::color::Color;
 use crate::cast_ray::{cast_ray,cast_ray_enemy, cast_ray_2dplayer};
 use crate::player::Player;
 use crate::texture::Texture;
+use crate::Intersect;
 
 use nalgebra_glm::Vec2;
 use std::f32::consts::PI;
@@ -263,19 +264,24 @@ pub fn draw_2dplayer_fov(framebuffer: &mut Framebuffer, player: &mut Player, num
     for i in 0..num_rays{
         let current_ray = i as f32 / num_rays as f32;
         let angle = player.get_a() - ((PI / 8.0) / 2.0) + ((PI / 8.0) * current_ray);
-        cast_ray_enemy(&player.get_pos(), -angle, &maze, block_size, true, 100.0, 0.35,Some(framebuffer));
+        cast_ray_enemy(&player.get_pos(), angle, &maze, block_size, true, 100.0, 0.35,Some(framebuffer));
     }
 }
 
-pub fn draw_enemy_fov(framebuffer: &mut Framebuffer, enemy: &Enemy, num_rays : usize,  maze: &Vec<Vec<char>>, block_size: f32) {
-    for i in 0..num_rays{
+pub fn draw_enemy_fov(framebuffer: &mut Framebuffer, enemy: &Enemy, num_rays: usize, maze: &Vec<Vec<char>>, block_size: f32) -> Vec<Option<Intersect>> {
+    let mut intersections = Vec::with_capacity(num_rays);
+
+    for i in 0..num_rays {
         let current_ray = i as f32 / num_rays as f32;
         let angle = enemy.get_a() - ((PI / 8.0) / 2.0) + ((PI / 8.0) * current_ray);
-        cast_ray_enemy(&enemy.get_pos(), -angle, &maze, block_size, true, 100.0, 0.35,Some(framebuffer));
+        let intersection = cast_ray_enemy(&enemy.get_pos(), -angle, &maze, block_size, true, 100.0, 0.35, Some(framebuffer));
+        intersections.push(intersection);
     }
+
+    intersections
 }
 
-pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> Vec<Vec<char>> {
+pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32, player: &mut Player) -> Vec<Vec<char>> {
     let maze = load_maze(file_path);
     let rows = maze.len();
     let cols = maze[0].len();
@@ -287,6 +293,7 @@ pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> 
 
     let mut player_pos = Vec2::new(0.0, 0.0);
 
+    // Encontrar la posición del jugador
     for row in 0..rows {
         for col in 0..cols {
             let x0 = col * scaled_block_size;
@@ -295,7 +302,38 @@ pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> 
             if maze[row][col] == 'p' {
                 player_pos = Vec2::new(x0 as f32 + (scaled_block_size / 2) as f32, y0 as f32 + (scaled_block_size / 2) as f32);
             }
-            draw_cell(framebuffer, x0, y0, scaled_block_size, maze[row][col], opacity);
+        }
+    }
+
+    // Definir el número de rayos que se dispararán en el minimapa
+    let num_rays = 360;
+    let fov = 2.0 * std::f32::consts::PI; // 360 grados
+
+    // Renderizar solo las celdas interceptadas por los rayos
+    for i in 0..num_rays {
+        let current_ray = i as f32 / num_rays as f32; // Ray proportion
+        let direction = player.a - (player.fov / 2.0) + (player.fov * current_ray);
+
+        if let Some(intersect) = cast_ray_2dplayer(
+            &player_pos,
+            direction,
+            &maze,
+            scaled_block_size as f32,
+            false,
+            50.0 as f32,
+            1.0,
+            None,
+        ) {
+            println!("{}", player.get_pos().x);
+            let col = (intersect.x / scaled_block_size as f32).floor() as usize;
+            let row = (intersect.y / scaled_block_size as f32).floor() as usize;
+            let x0 = col * scaled_block_size;
+            let y0 = row * scaled_block_size;
+
+            // Asegúrate de que la posición está dentro de los límites del laberinto
+            if row < rows && col < cols {
+                draw_cell(framebuffer, x0, y0, scaled_block_size, maze[row][col], opacity);
+            }
         }
     }
 
