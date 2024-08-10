@@ -17,13 +17,11 @@ use color::Color;
 use player::Player;
 use polygon::Polygon;
 use line::Line;
-use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position, draw_enemy_fov, minimap, draw_2dplayer_fov};
+use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position, draw_enemy_fov, minimap};
 use minifb::{Window, WindowOptions, Key};
 use nalgebra_glm::Vec2;
 use std::time::{Duration, Instant};
 use std::f32::consts::PI;
-
-use crate::cast_ray::Intersect;
 
 fn calculate_fps(start_time: Instant, frame_count: usize) -> f64 {
     let duration = start_time.elapsed().as_secs_f64();
@@ -101,7 +99,7 @@ fn main() {
                 block_size
             );
         }
-        let minimap = minimap(&mut framebuffer, file_path, 0.5, &mut player);
+        let minimap = minimap(&mut framebuffer, file_path, 0.5);
         
         let delta_time = 1.0 / 30.0;
         
@@ -116,8 +114,6 @@ fn main() {
 
         // Dibuja la posición del jugador en el minimapa
         draw_player_position(&mut framebuffer, player.get_pos(), block_size as usize);
-        draw_2dplayer_fov(&mut framebuffer, &mut player, 10, &maze, block_size);
-
 
         // Dibuja las posiciones de los enemigos en el minimapa
         
