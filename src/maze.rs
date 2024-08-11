@@ -12,6 +12,8 @@ use crate::texture::Texture;
 use std::collections::HashSet;
 use nalgebra_glm::Vec2;
 use std::f32::consts::PI;
+use std::time::{Duration};
+use std::thread;
 
 fn draw_cell(framebuffer: &mut Framebuffer, x0: usize, y0: usize, block_size: usize, cell: char, opacity: f32) {
     let color = match cell {
@@ -268,18 +270,28 @@ pub fn draw_enemy_fov(framebuffer: &mut Framebuffer, enemy: &Enemy, num_rays : u
     }
 }
 
-pub fn minimap(framebuffer: &mut Framebuffer, mut maze: Vec<Vec<char>>, opacity: f32, key_down: char, direction: f32) -> Vec<Vec<char>> {
-    if key_down == 'w' || key_down == 's' || key_down == 'a' || key_down == 'd' {
-        maze = update_minimap(maze, direction);
-    }
-    
+pub fn minimap(framebuffer: &mut Framebuffer, mut maze: Vec<Vec<char>>, opacity: f32, key_down: char, direction: f32, og_pos: Vec2, new_pos: Vec2) -> Vec<Vec<char>> {
     let rows = maze.len();
     let cols = maze[0].len();
 
     let scale_factor = 0.2;
     let block_size = std::cmp::min(framebuffer.get_width() / cols, framebuffer.get_height() / rows);
     let scaled_block_size = (block_size as f32 * scale_factor) as usize;
+    
+    let og_pos_block_x = og_pos.x / block_size as f32;
+    let og_pos_block_y = og_pos.y / block_size as f32;
+    let new_pos_block_x = new_pos.x / block_size as f32;
+    let new_pos_block_y = new_pos.x / block_size as f32;
 
+    println!("{}",og_pos_block_x);
+    println!("{}",new_pos_block_x);
+
+    if new_pos_block_x.round() != og_pos_block_x.round() {
+        if key_down == 'w' || key_down == 's' || key_down == 'a' || key_down == 'd' {
+            maze = update_minimap(maze, key_down,direction);
+        }
+    }
+    
     let mut player_pos = Vec2::new(0.0, 0.0);
     let mut player_row = 0;
     let mut player_col = 0;
@@ -319,10 +331,18 @@ pub fn minimap(framebuffer: &mut Framebuffer, mut maze: Vec<Vec<char>>, opacity:
 }
 
 
-fn update_minimap(mut maze: Vec<Vec<char>>, direction: f32) -> Vec<Vec<char>> {
+fn update_minimap(mut maze: Vec<Vec<char>>, key_down: char, direction: f32) -> Vec<Vec<char>> {
 
-    let x_dir = direction.cos().round() as isize;  
-    let y_dir = direction.sin().round() as isize;
+    let mut x_dir = direction.cos().round() as isize;  
+    let mut y_dir = direction.sin().round() as isize;
+
+    // println!("{}", x_dir);
+    // println!("{}", y_dir);
+    // println!("{}",key_down);
+    if key_down == 's'{
+        x_dir = -x_dir;
+        y_dir = -y_dir;
+    }  
 
     // Primero encuentra la posición de 'p'
     let mut p_pos = None;

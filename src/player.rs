@@ -34,7 +34,7 @@ impl Player {
         self.a
     }
 
-    pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: f32, framebuffer: &mut Framebuffer) -> char {
+    pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: f32, framebuffer: &mut Framebuffer) -> (char, Vec2) {
         const MOVE_SPEED: f32 = 5.0;
         const ROTATION_SPEED: f32 = std::f32::consts::PI / 30.0;
         let mut key_down = '\0';
@@ -103,9 +103,9 @@ impl Player {
         let new_pos = Vec2::new(self.pos.x + move_x, self.pos.y + move_y);
         if !is_wall(maze, (new_pos.x / block_size as f32) as usize, (new_pos.y / block_size as f32) as usize) {
             self.pos = new_pos;
-            return key_down;
+            return (key_down, self.pos);
         } else {
-            return '\0';
+            return ('\0', self.pos);
         }
     }        
 

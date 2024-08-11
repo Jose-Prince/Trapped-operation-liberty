@@ -46,22 +46,26 @@ fn main() {
     let (mut maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
     let mut key_down = '\0';
 
+    
     let enemies_pos = render_enemies_pos(&mut framebuffer, file_path);
     let block_size = std::cmp::min(
         framebuffer.get_width() / maze[0].len(),
         framebuffer.get_height() / maze.len()
     ) as f32;
-
+    
     let mut show_fps: bool = false;
     let mut f_key_pressed: bool = false;
-
+    
     let mut enemies: Vec<Enemy> = Vec::new();
-
+    
     for pos in &enemies_pos {
         enemies.push(Enemy::new(*pos, PI/2.0, -10.0, 20.0, (framebuffer.get_height()) as f32));
     }
-
+    
     let mut player = Player::new(player_pos.x, player_pos.y, 0.0, PI / 3.0);
+    
+    let mut og_pos = player.get_pos();
+    let mut new_pos = player.get_pos();
 
     let texture = Texture::from_file("textures/prison_wall.png");
     let enemy_texture = Texture::from_file("textures/Police.png");
@@ -77,7 +81,7 @@ fn main() {
             player.update_mouse(mouse_x as f32, mouse_y as f32, width as f32, height as f32);
         }
 
-        key_down = player.process_events(&window, &maze, block_size, &mut framebuffer);
+        (key_down, new_pos) = player.process_events(&window, &maze, block_size, &mut framebuffer);
 
         framebuffer.clear();
 
@@ -101,7 +105,7 @@ fn main() {
                 block_size
             );
         }
-        maze = minimap(&mut framebuffer, maze.clone(), 0.5, key_down, player.get_a());
+        maze = minimap(&mut framebuffer, maze.clone(), 0.5, key_down, player.get_a(), og_pos, new_pos);
         
         let delta_time = 1.0 / 30.0;
         
@@ -127,6 +131,8 @@ fn main() {
         } else {
             framebuffer.draw_text(width - 100, 10, "", Color::new(0, 255, 0));
         }
+
+        og_pos = new_pos;
 
         window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
         std::thread::sleep(Duration::from_millis(16));
