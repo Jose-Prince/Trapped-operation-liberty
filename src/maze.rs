@@ -243,7 +243,7 @@ pub fn draw_player_position(framebuffer: &mut Framebuffer, player_pos: Vec2, blo
     for y in -(player_size as isize)..=(player_size as isize) {
         for x in -(player_size as isize)..=(player_size as isize) {
             framebuffer.set_current_color(color);
-            framebuffer.point(((player_pos.x * 0.2) as isize + x), ((player_pos.y * 0.2) as isize + y));
+            framebuffer.point(((player_pos.x * 0.35) as isize + x), ((player_pos.y * 0.35) as isize + y));
         }
     }
 }
@@ -256,7 +256,7 @@ pub fn draw_enemies_position(framebuffer: &mut Framebuffer, enemies_pos: &Vec2, 
     for y in -(enemy_size as isize)..=(enemy_size as isize) {
         for x in -(enemy_size as isize)..=(enemy_size as isize) {
             framebuffer.set_current_color(color);
-            framebuffer.point(((enemies_pos.x * 0.2) as isize + x), ((enemies_pos.y * 0.2) as isize + y));
+            framebuffer.point(((enemies_pos.x * 0.35) as isize + x), ((enemies_pos.y * 0.35) as isize + y));
         }
     }
     
@@ -266,34 +266,44 @@ pub fn draw_enemy_fov(framebuffer: &mut Framebuffer, enemy: &Enemy, num_rays : u
     for i in 0..num_rays{
         let current_ray = i as f32 / num_rays as f32;
         let angle = enemy.get_a() - ((PI / 8.0) / 2.0) + ((PI / 8.0) * current_ray);
-        cast_ray_enemy(&enemy.get_pos(), -angle, &maze, block_size, true, 100.0, 0.2,Some(framebuffer));
+        cast_ray_enemy(&enemy.get_pos(), -angle, &maze, block_size, true, 100.0, 0.35,Some(framebuffer));
     }
 }
 
-pub fn minimap(framebuffer: &mut Framebuffer, mut maze: Vec<Vec<char>>, opacity: f32, key_down: char, direction: f32, og_pos: Vec2, new_pos: Vec2) -> Vec<Vec<char>> {
+pub fn minimap(
+    framebuffer: &mut Framebuffer,
+    mut maze: Vec<Vec<char>>,
+    opacity: f32,
+    key_down: char,
+    direction: f32,
+    og_pos: Vec2,
+    new_pos: Vec2,
+) -> Vec<Vec<char>> {
     let rows = maze.len();
     let cols = maze[0].len();
 
-    let scale_factor = 0.2;
+    let scale_factor = 0.35;
     let block_size = std::cmp::min(framebuffer.get_width() / cols, framebuffer.get_height() / rows);
     let scaled_block_size = (block_size as f32 * scale_factor) as usize;
-    
+
+    // Calcula el tamaño total del minimapa
+    let minimap_width = cols * scaled_block_size;
+    let minimap_height = rows * scaled_block_size;
+
+    // Dibuja el fondo negro con opacidad
+    draw_background(framebuffer, 0, 0, minimap_width, minimap_height, opacity);
+
     let og_pos_block_x = og_pos.x / block_size as f32;
     let og_pos_block_y = og_pos.y / block_size as f32;
     let new_pos_block_x = new_pos.x / block_size as f32;
     let new_pos_block_y = new_pos.y / block_size as f32;
 
-    if new_pos_block_x.floor() != og_pos_block_x.floor() {
+    if new_pos_block_x.floor() != og_pos_block_x.floor() || new_pos_block_y.floor() != og_pos_block_y.floor() {
         if key_down == 'w' || key_down == 's' || key_down == 'a' || key_down == 'd' {
-            maze = update_minimap(maze, key_down,direction);
+            maze = update_minimap(maze, key_down, direction);
         }
     }
-    if new_pos_block_y.floor() != og_pos_block_y.floor() {
-        if key_down == 'w' || key_down == 's' || key_down == 'a' || key_down == 'd' {
-            maze = update_minimap(maze, key_down,direction);
-        }
-    }
-    
+
     let mut player_pos = Vec2::new(0.0, 0.0);
     let mut player_row = 0;
     let mut player_col = 0;
@@ -308,29 +318,43 @@ pub fn minimap(framebuffer: &mut Framebuffer, mut maze: Vec<Vec<char>>, opacity:
         }
     }
 
-    let visible_radius = 5;
+    let visible_radius = 2; // Radio de visión reducido
 
     for row in (player_row.saturating_sub(visible_radius))..(std::cmp::min(player_row + visible_radius + 1, rows)) {
         for col in (player_col.saturating_sub(visible_radius))..(std::cmp::min(player_col + visible_radius + 1, cols)) {
             let x0 = col * scaled_block_size;
             let y0 = row * scaled_block_size;
 
-            // Asegurarte de no acceder a índices fuera de los límites
-            if row > 0 && col > 0 && row < rows - 1 && col < cols - 1 {
-                if (row as i32 - player_row as i32).abs() <= 1 && (col as i32 - player_col as i32).abs() <= 1 {
-                    draw_cell(framebuffer, x0, y0, scaled_block_size, maze[row][col], opacity);
-                }
-            } else if row == 0 {
-                if (col > 0 && col < cols - 1) && 
-                    (maze[row+1][col+1] == 'p' || maze[row+1][col] == 'p' || maze[row+1][col-1] == 'p') {
-                    draw_cell(framebuffer, x0, y0, scaled_block_size, maze[row][col], opacity);
-                }
+            // Dibuja la celda si está en el radio visible o si está en un borde visible según la lógica de visibilidad
+            let is_visible = (row as i32 - player_row as i32).abs() <= visible_radius.try_into().unwrap()
+                && (col as i32 - player_col as i32).abs() <= visible_radius.try_into().unwrap();
+
+            let is_border_cell = row == 0 || row == rows - 1 || col == 0 || col == cols - 1;
+
+            if is_visible || is_border_cell {
+                draw_cell(framebuffer, x0, y0, scaled_block_size, maze[row][col], opacity);
             }
         }
     }
 
     maze
 }
+
+// Función para dibujar el fondo negro con opacidad
+fn draw_background(framebuffer: &mut Framebuffer, x: usize, y: usize, width: usize, height: usize, opacity: f32) {
+    let color = Color::new(0,0,0);
+    for i in 0..width {
+        for j in 0..height {
+            let bg_color = framebuffer.get_pixel_color((x + i) as isize, (y + j) as isize);
+            let blended_color = color.blend(bg_color.expect("REASON"), 0.7);
+            
+            framebuffer.set_current_color(blended_color);
+
+            framebuffer.point((x + i).try_into().unwrap(), (y + j).try_into().unwrap());
+        }
+    }
+}
+
 
 
 fn update_minimap(mut maze: Vec<Vec<char>>, key_down: char, direction: f32) -> Vec<Vec<char>> {
@@ -376,7 +400,7 @@ fn update_minimap(mut maze: Vec<Vec<char>>, key_down: char, direction: f32) -> V
         // Verifica que la nueva posición esté dentro de los límites y sea un espacio vacío
         if new_row >= 0 && new_row < maze.len() as isize &&
            new_col >= 0 && new_col < maze[0].len() as isize &&
-           maze[new_row as usize][new_col as usize] == ' ' {
+           (maze[new_row as usize][new_col as usize] == ' ' || maze[new_row as usize][new_col as usize] == 'e'){
             maze[new_row as usize][new_col as usize] = 'p';
             maze[row as usize][col as usize] = ' ';
         }
