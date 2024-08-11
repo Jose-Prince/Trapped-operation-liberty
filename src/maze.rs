@@ -281,12 +281,14 @@ pub fn minimap(framebuffer: &mut Framebuffer, mut maze: Vec<Vec<char>>, opacity:
     let og_pos_block_x = og_pos.x / block_size as f32;
     let og_pos_block_y = og_pos.y / block_size as f32;
     let new_pos_block_x = new_pos.x / block_size as f32;
-    let new_pos_block_y = new_pos.x / block_size as f32;
+    let new_pos_block_y = new_pos.y / block_size as f32;
 
-    println!("{}",og_pos_block_x);
-    println!("{}",new_pos_block_x);
-
-    if new_pos_block_x.round() != og_pos_block_x.round() {
+    if new_pos_block_x.floor() != og_pos_block_x.floor() {
+        if key_down == 'w' || key_down == 's' || key_down == 'a' || key_down == 'd' {
+            maze = update_minimap(maze, key_down,direction);
+        }
+    }
+    if new_pos_block_y.floor() != og_pos_block_y.floor() {
         if key_down == 'w' || key_down == 's' || key_down == 'a' || key_down == 'd' {
             maze = update_minimap(maze, key_down,direction);
         }
@@ -332,19 +334,30 @@ pub fn minimap(framebuffer: &mut Framebuffer, mut maze: Vec<Vec<char>>, opacity:
 
 
 fn update_minimap(mut maze: Vec<Vec<char>>, key_down: char, direction: f32) -> Vec<Vec<char>> {
-
     let mut x_dir = direction.cos().round() as isize;  
     let mut y_dir = direction.sin().round() as isize;
 
-    // println!("{}", x_dir);
-    // println!("{}", y_dir);
-    // println!("{}",key_down);
-    if key_down == 's'{
-        x_dir = -x_dir;
-        y_dir = -y_dir;
-    }  
+    // Ajusta la dirección basada en la tecla presionada
+    match key_down {
+        'w' => { /* No se cambia la dirección */ },
+        's' => {
+            x_dir = -x_dir;
+            y_dir = -y_dir;
+        },
+        'a' => {
+            let angle = direction - std::f32::consts::FRAC_PI_2; // Gira 90 grados hacia la izquierda
+            x_dir = angle.cos().round() as isize;
+            y_dir = angle.sin().round() as isize;
+        },
+        'd' => {
+            let angle = direction + std::f32::consts::FRAC_PI_2; // Gira 90 grados hacia la derecha
+            x_dir = angle.cos().round() as isize;
+            y_dir = angle.sin().round() as isize;
+        },
+        _ => { return maze; } // Si no es una tecla válida, no hacer nada
+    }
 
-    // Primero encuentra la posición de 'p'
+    // Encuentra la posición de 'p'
     let mut p_pos = None;
 
     for row in 0..maze.len() {
@@ -370,4 +383,4 @@ fn update_minimap(mut maze: Vec<Vec<char>>, key_down: char, direction: f32) -> V
     }
 
     maze
-}  
+}
