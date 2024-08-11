@@ -9,6 +9,7 @@ use crate::cast_ray::{cast_ray,cast_ray_enemy};
 use crate::player::Player;
 use crate::texture::Texture;
 
+use std::collections::HashSet;
 use nalgebra_glm::Vec2;
 use std::f32::consts::PI;
 
@@ -267,12 +268,14 @@ pub fn draw_enemy_fov(framebuffer: &mut Framebuffer, enemy: &Enemy, num_rays : u
     }
 }
 
-pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> Vec<Vec<char>> {
-    let maze = load_maze(file_path);
+pub fn minimap(framebuffer: &mut Framebuffer, mut maze: Vec<Vec<char>>, opacity: f32, key_down: char, direction: f32) -> Vec<Vec<char>> {
+    if key_down == 'w' || key_down == 's' || key_down == 'a' || key_down == 'd' {
+        maze = update_minimap(maze, direction);
+    }
+    
     let rows = maze.len();
     let cols = maze[0].len();
 
-    // Escala para hacer el minimapa más pequeño (ajusta el factor según sea necesario)
     let scale_factor = 0.2;
     let block_size = std::cmp::min(framebuffer.get_width() / cols, framebuffer.get_height() / rows);
     let scaled_block_size = (block_size as f32 * scale_factor) as usize;
@@ -281,7 +284,6 @@ pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> 
     let mut player_row = 0;
     let mut player_col = 0;
 
-    // Encuentra la posición del jugador y su índice en el mapa
     for row in 0..rows {
         for col in 0..cols {
             if maze[row][col] == 'p' {
@@ -292,25 +294,21 @@ pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> 
         }
     }
 
-    // Define el rango del área visible alrededor del jugador
-    let visible_radius = 5; // Ajusta el radio según sea necesario
+    let visible_radius = 5;
 
-    // Renderiza solo el área alrededor del jugador
     for row in (player_row.saturating_sub(visible_radius))..(std::cmp::min(player_row + visible_radius + 1, rows)) {
         for col in (player_col.saturating_sub(visible_radius))..(std::cmp::min(player_col + visible_radius + 1, cols)) {
             let x0 = col * scaled_block_size;
             let y0 = row * scaled_block_size;
 
-            if row == 0 {
-                if maze[row+1][col+1] == 'p' || maze[row+1][col] == 'p' || maze[row+1][col-1] == 'p'{
+            // Asegurarte de no acceder a índices fuera de los límites
+            if row > 0 && col > 0 && row < rows - 1 && col < cols - 1 {
+                if (row as i32 - player_row as i32).abs() <= 1 && (col as i32 - player_col as i32).abs() <= 1 {
                     draw_cell(framebuffer, x0, y0, scaled_block_size, maze[row][col], opacity);
                 }
-            }
-
-            // Asegúrate de no acceder a índices fuera de los límites
-            if row > 0 && col > 0 && row < rows - 1 && col < cols - 1 {
-                // Verifica si la celda está adyacente al jugador
-                if (row as i32 - player_row as i32).abs() <= 1 && (col as i32 - player_col as i32).abs() <= 1 {
+            } else if row == 0 {
+                if (col > 0 && col < cols - 1) && 
+                    (maze[row+1][col+1] == 'p' || maze[row+1][col] == 'p' || maze[row+1][col-1] == 'p') {
                     draw_cell(framebuffer, x0, y0, scaled_block_size, maze[row][col], opacity);
                 }
             }
@@ -319,3 +317,37 @@ pub fn minimap(framebuffer: &mut Framebuffer, file_path: &str, opacity: f32) -> 
 
     maze
 }
+
+
+fn update_minimap(mut maze: Vec<Vec<char>>, direction: f32) -> Vec<Vec<char>> {
+
+    let x_dir = direction.cos().round() as isize;  
+    let y_dir = direction.sin().round() as isize;
+
+    // Primero encuentra la posición de 'p'
+    let mut p_pos = None;
+
+    for row in 0..maze.len() {
+        for col in 0..maze[row].len() {
+            if maze[row][col] == 'p' {
+                p_pos = Some((row as isize, col as isize));
+                break;
+            }
+        }
+    }
+
+    if let Some((row, col)) = p_pos {
+        let new_row = row + y_dir;
+        let new_col = col + x_dir;
+
+        // Verifica que la nueva posición esté dentro de los límites y sea un espacio vacío
+        if new_row >= 0 && new_row < maze.len() as isize &&
+           new_col >= 0 && new_col < maze[0].len() as isize &&
+           maze[new_row as usize][new_col as usize] == ' ' {
+            maze[new_row as usize][new_col as usize] = 'p';
+            maze[row as usize][col as usize] = ' ';
+        }
+    }
+
+    maze
+}  

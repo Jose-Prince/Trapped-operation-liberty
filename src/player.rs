@@ -34,9 +34,10 @@ impl Player {
         self.a
     }
 
-    pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: f32, framebuffer: &mut Framebuffer) {
+    pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: f32, framebuffer: &mut Framebuffer) -> char {
         const MOVE_SPEED: f32 = 5.0;
         const ROTATION_SPEED: f32 = std::f32::consts::PI / 30.0;
+        let mut key_down = '\0';
         
         let cos_a = self.a.cos();
         let sin_a = self.a.sin();
@@ -56,20 +57,28 @@ impl Player {
         if window.is_key_down(Key::Up) || window.is_key_down(Key::W) {
             move_x += MOVE_SPEED * cos_a;
             move_y += MOVE_SPEED * sin_a;
+
+            key_down = 'w';
         }
         if window.is_key_down(Key::Down) || window.is_key_down(Key::S) {
             move_x -= MOVE_SPEED * cos_a;
             move_y -= MOVE_SPEED * sin_a;
+
+            key_down = 's'
         }
     
         // Movimiento lateral (A y D)
         if window.is_key_down(Key::A) {
             move_x += MOVE_SPEED * sin_a;
             move_y -= MOVE_SPEED * cos_a;
+
+            key_down = 'a'
         }
         if window.is_key_down(Key::D) {
             move_x -= MOVE_SPEED * sin_a;
             move_y += MOVE_SPEED * cos_a;
+
+            key_down = 'd'
         }
     
         // Normalizar movimiento en diagonal
@@ -94,6 +103,9 @@ impl Player {
         let new_pos = Vec2::new(self.pos.x + move_x, self.pos.y + move_y);
         if !is_wall(maze, (new_pos.x / block_size as f32) as usize, (new_pos.y / block_size as f32) as usize) {
             self.pos = new_pos;
+            return key_down;
+        } else {
+            return '\0';
         }
     }        
 

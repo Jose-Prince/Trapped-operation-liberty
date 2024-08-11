@@ -43,7 +43,9 @@ fn main() {
     });
 
     let file_path = "src/maze.txt";
-    let (maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
+    let (mut maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
+    let mut key_down = '\0';
+
     let enemies_pos = render_enemies_pos(&mut framebuffer, file_path);
     let block_size = std::cmp::min(
         framebuffer.get_width() / maze[0].len(),
@@ -75,7 +77,7 @@ fn main() {
             player.update_mouse(mouse_x as f32, mouse_y as f32, width as f32, height as f32);
         }
 
-        player.process_events(&window, &maze, block_size, &mut framebuffer);
+        key_down = player.process_events(&window, &maze, block_size, &mut framebuffer);
 
         framebuffer.clear();
 
@@ -99,7 +101,7 @@ fn main() {
                 block_size
             );
         }
-        let minimap = minimap(&mut framebuffer, file_path, 0.5);
+        maze = minimap(&mut framebuffer, maze.clone(), 0.5, key_down, player.get_a());
         
         let delta_time = 1.0 / 30.0;
         
