@@ -111,7 +111,7 @@ impl Framebuffer {
 
     pub fn draw_text(&mut self, x: usize, y: usize, text: &str, color: Color) {
         // Cargar la fuente desde el archivo
-        let font_data = include_bytes!("../fonts/Meditative.ttf");
+        let font_data = include_bytes!("../fonts/mai10.ttf");
         let font = Font::try_from_bytes(font_data as &[u8]).unwrap();
     
         // Definir la escala (tamaño) del texto
