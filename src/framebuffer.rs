@@ -1,5 +1,6 @@
 use crate::bmp::write_bmp_file;
 use crate::color::Color;
+use image::{GenericImageView, Pixel, Rgba};
 
 use rusttype::{Font, Scale, point, PositionedGlyph};
 
@@ -143,5 +144,27 @@ impl Framebuffer {
                 });
             }
         }
+    }
+
+    pub fn draw_image(&mut self, image_path: &str, width: usize, height: usize) -> Vec<u32> {
+        let img = image::open(image_path).expect("No se pudo cargar la imagen");
+        let (img_width, img_height) = img.dimensions();
+        let mut buffer: Vec<u32> = vec![0; (width * height) as usize];
+
+        for y in 0..img_height {
+            for x in 0..img_width {
+                if x < width as u32 && y < height as u32 {
+                    let pixel = img.get_pixel(x,y);
+                    let rgba = pixel.0;
+                    let r = rgba[0] as u32;
+                    let g = rgba[1] as u32;
+                    let b = rgba[2] as u32;
+                    let a = rgba[3] as u32;
+
+                    buffer[(y as usize * width + x as usize)] = (a << 24) | (r << 16) | (g << 8) | b;
+                }
+            }
+        }
+        buffer
     }
 }

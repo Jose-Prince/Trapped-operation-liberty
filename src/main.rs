@@ -19,6 +19,7 @@ use polygon::Polygon;
 use line::Line;
 use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position, draw_enemy_fov, minimap};
 use minifb::{Window, WindowOptions, Key};
+use image::GenericImageView;
 use nalgebra_glm::Vec2;
 use std::time::{Duration, Instant};
 use std::f32::consts::PI;
@@ -29,7 +30,7 @@ fn calculate_fps(start_time: Instant, frame_count: usize) -> f64 {
 }
 
 fn main() {
-    let width = 800;
+    let width = 1000;
     let height = 800;
     let mut framebuffer = Framebuffer::new(width, height);
 
@@ -41,6 +42,15 @@ fn main() {
     ).unwrap_or_else(|e| {
         panic!("{}", e);
     });
+
+    let begin_page = "textures/Inicio.png";
+    
+    let mut buffer: Vec<u32> = framebuffer.draw_image(&begin_page, width, height);
+
+    while window.is_open() && !window.is_key_down(minifb::Key::Escape) {
+        window.update_with_buffer(&buffer, width, height).unwrap();
+    }
+
 
     let file_path = "src/maze.txt";
     let (mut maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
@@ -76,6 +86,12 @@ fn main() {
     // Inicializa el z_buffer
     let mut z_buffer = vec![f32::INFINITY; framebuffer.get_width()];
 
+    let x_offset = 100;
+    let y_offset = 100;
+
+
+    
+    
     while window.is_open() && !window.is_key_down(Key::Escape) {
         if let Some((mouse_x, mouse_y)) = window.get_mouse_pos(minifb::MouseMode::Clamp) {
             player.update_mouse(mouse_x as f32, mouse_y as f32, width as f32, height as f32);
@@ -117,7 +133,7 @@ fn main() {
         }
 
         let (maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
-
+        
         // Dibuja la posición del jugador en el minimapa
         draw_player_position(&mut framebuffer, player.get_pos(), block_size as usize);
 
@@ -133,7 +149,7 @@ fn main() {
         }
 
         og_pos = new_pos;
-
+        
         window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
         std::thread::sleep(Duration::from_millis(16));
     }
