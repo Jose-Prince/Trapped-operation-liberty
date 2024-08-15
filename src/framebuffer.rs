@@ -147,7 +147,7 @@ impl Framebuffer {
         }
     }
 
-    pub fn draw_image(&mut self, image_path: &str, width: usize, height: usize) -> Vec<u32> {
+    pub fn draw_image(&mut self, image_path: &str, width: usize, height: usize) {
         // Cargar la imagen
         let img = image::open(image_path).expect("No se pudo cargar la imagen");
         let img_width = img.width() as usize;
@@ -179,11 +179,9 @@ impl Framebuffer {
                 let a = rgba[3] as u32;
     
                 // Insertar el píxel en el buffer con el offset vertical
-                buffer[((y + vertical_offset) * width + x) as usize] = (a << 24) | (r << 16) | (g << 8) | b;
+                self.buffer[((y + vertical_offset) * width + x) as usize] = (a << 24) | (r << 16) | (g << 8) | b;
             }
         }
-    
-        buffer
     }
     
 }

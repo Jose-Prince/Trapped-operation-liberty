@@ -45,10 +45,12 @@ fn main() {
 
     let begin_page = "textures/Inicio.png";
     
-    let mut buffer: Vec<u32> = framebuffer.draw_image(&begin_page, width, height);
+    while window.is_open() && !window.is_key_down(minifb::Key::Enter) && !window.is_key_down(minifb::Key::Escape) {
+        framebuffer.clear();
+        framebuffer.draw_image(&begin_page, width, height);
+        framebuffer.draw_text(width/2 - 50,height/2,"Press ENTER to start game", Color::new(255,255,255));
 
-    while window.is_open() && !window.is_key_down(minifb::Key::Enter) {
-        window.update_with_buffer(&buffer, width, height).unwrap();
+        window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
     }
 
 
