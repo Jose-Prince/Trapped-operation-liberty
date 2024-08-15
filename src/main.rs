@@ -47,7 +47,7 @@ fn main() {
     
     let mut buffer: Vec<u32> = framebuffer.draw_image(&begin_page, width, height);
 
-    while window.is_open() && !window.is_key_down(minifb::Key::Escape) {
+    while window.is_open() && !window.is_key_down(minifb::Key::Enter) {
         window.update_with_buffer(&buffer, width, height).unwrap();
     }
 
