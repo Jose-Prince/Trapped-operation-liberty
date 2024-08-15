@@ -1,6 +1,7 @@
 use crate::bmp::write_bmp_file;
 use crate::color::Color;
 use image::{GenericImageView, Pixel, Rgba};
+use image::imageops::FilterType;
 
 use rusttype::{Font, Scale, point, PositionedGlyph};
 
@@ -147,24 +148,42 @@ impl Framebuffer {
     }
 
     pub fn draw_image(&mut self, image_path: &str, width: usize, height: usize) -> Vec<u32> {
+        // Cargar la imagen
         let img = image::open(image_path).expect("No se pudo cargar la imagen");
-        let (img_width, img_height) = img.dimensions();
-        let mut buffer: Vec<u32> = vec![0; (width * height) as usize];
-
-        for y in 0..img_height {
-            for x in 0..img_width {
-                if x < width as u32 && y < height as u32 {
-                    let pixel = img.get_pixel(x,y);
-                    let rgba = pixel.0;
-                    let r = rgba[0] as u32;
-                    let g = rgba[1] as u32;
-                    let b = rgba[2] as u32;
-                    let a = rgba[3] as u32;
-
-                    buffer[(y as usize * width + x as usize)] = (a << 24) | (r << 16) | (g << 8) | b;
-                }
+        let img_width = img.width() as usize;
+        let img_height = img.height() as usize;
+    
+        // Calcular el factor de escala para ajustar la imagen al ancho del framebuffer
+        let scale_factor = width as f32 / img_width as f32;
+    
+        // Mantener la relación de aspecto y calcular la nueva altura
+        let new_height = (img_height as f32 * scale_factor) as usize;
+    
+        // Redimensionar la imagen manteniendo la relación de aspecto
+        let scaled_img = img.resize_exact(width as u32, new_height as u32, FilterType::Lanczos3);
+    
+        // Crear un buffer para el framebuffer
+        let mut buffer: Vec<u32> = vec![0; width * height];
+    
+        // Calcular el offset vertical para centrar la imagen en el framebuffer
+        let vertical_offset = (height.saturating_sub(new_height)) / 2;
+    
+        // Dibujar la imagen redimensionada en el framebuffer, centrada verticalmente
+        for y in 0..new_height.min(height) {
+            for x in 0..width {
+                let pixel = scaled_img.get_pixel(x as u32, y as u32);
+                let rgba = pixel.0;
+                let r = rgba[0] as u32;
+                let g = rgba[1] as u32;
+                let b = rgba[2] as u32;
+                let a = rgba[3] as u32;
+    
+                // Insertar el píxel en el buffer con el offset vertical
+                buffer[((y + vertical_offset) * width + x) as usize] = (a << 24) | (r << 16) | (g << 8) | b;
             }
         }
+    
         buffer
     }
+    
 }
