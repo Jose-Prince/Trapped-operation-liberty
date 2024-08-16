@@ -9,6 +9,7 @@ mod texture;
 mod polygon;
 mod line;
 mod enemy;
+mod audioPlayer;
 
 use enemy::Enemy;
 use framebuffer::Framebuffer;
@@ -16,6 +17,7 @@ use texture::Texture;
 use color::Color;
 use player::Player;
 use polygon::Polygon;
+use audioPlayer::AudioPlayer;
 use line::Line;
 use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position, draw_enemy_fov, minimap};
 use minifb::{Window, WindowOptions, Key};
@@ -30,6 +32,10 @@ fn calculate_fps(start_time: Instant, frame_count: usize) -> f64 {
 }
 
 fn main() {
+    let mut audio = AudioPlayer::new("Audio/Inicio.mp3");
+
+    audio.play();
+
     let width = 1000;
     let height = 800;
     let mut framebuffer = Framebuffer::new(width, height);
@@ -53,6 +59,7 @@ fn main() {
         window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
     }
 
+    audio.stop();
 
     let file_path = "src/maze.txt";
     let (mut maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
