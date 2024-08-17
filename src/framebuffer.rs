@@ -111,13 +111,13 @@ impl Framebuffer {
         }
     }
 
-    pub fn draw_text(&mut self, x: usize, y: usize, text: &str, color: Color) {
+    pub fn draw_text(&mut self, x: usize, y: usize, text: &str, color: Color, scale: f32) {
         // Cargar la fuente desde el archivo
         let font_data = include_bytes!("../fonts/mai10.ttf");
         let font = Font::try_from_bytes(font_data as &[u8]).unwrap();
     
         // Definir la escala (tamaño) del texto
-        let scale = Scale::uniform(20.0); // Ajusta el tamaño según sea necesario
+        let scale = Scale::uniform(scale); // Ajusta el tamaño según sea necesario
     
         // Establecer el color actual del framebuffer
         self.set_current_color(color);

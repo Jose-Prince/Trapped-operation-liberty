@@ -65,7 +65,7 @@ fn main() {
         }
 
         if show_text {
-            framebuffer.draw_text(width/2 - 50,height/2,"Press ENTER to start game", Color::new(255,255,255));
+            framebuffer.draw_text(width/5,(4*height)/5 - 25,"Press ENTER to start game", Color::new(255,255,255), 70.0);
         }
 
         window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
@@ -165,9 +165,9 @@ fn main() {
         let fps = calculate_fps(start_time, frame_count);
         
         if window.is_key_down(Key::F) {
-            framebuffer.draw_text(width - 100, 10, &format!("FPS: {:.2}", fps), Color::new(0, 255, 0));
+            framebuffer.draw_text(width - 100, 10, &format!("FPS: {:.2}", fps), Color::new(0, 255, 0), 20.0);
         } else {
-            framebuffer.draw_text(width - 100, 10, "", Color::new(0, 255, 0));
+            framebuffer.draw_text(width - 100, 10, "", Color::new(0, 255, 0), 20.0);
         }
 
         og_pos = new_pos;
