@@ -10,6 +10,7 @@ mod polygon;
 mod line;
 mod enemy;
 mod audioPlayer;
+mod scenes;
 
 use enemy::Enemy;
 use framebuffer::Framebuffer;
@@ -19,6 +20,7 @@ use player::Player;
 use polygon::Polygon;
 use audioPlayer::AudioPlayer;
 use line::Line;
+use scenes::{game_start};
 use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position, draw_enemy_fov, minimap};
 use minifb::{Window, WindowOptions, Key};
 use image::GenericImageView;
@@ -32,14 +34,11 @@ fn calculate_fps(start_time: Instant, frame_count: usize) -> f64 {
 }
 
 fn main() {
-    let mut audio = AudioPlayer::new("Audio/Inicio.mp3");
-
-    audio.play();
-
+    
     let width = 1000;
     let height = 800;
     let mut framebuffer = Framebuffer::new(width, height);
-
+    
     let mut window = Window::new(
         "Maze",
         width,
@@ -49,30 +48,7 @@ fn main() {
         panic!("{}", e);
     });
 
-    let begin_page = "textures/Inicio.png";
-
-    let blink_interval = Duration::from_millis(200);
-    let mut last_blink_time = Instant::now();
-    let mut show_text = true;
-    
-    while window.is_open() && !window.is_key_down(minifb::Key::Enter) && !window.is_key_down(minifb::Key::Escape) {
-        framebuffer.clear();
-        framebuffer.draw_image(&begin_page, width, height);
-
-        if last_blink_time.elapsed() >= blink_interval {
-            show_text = !show_text;
-            last_blink_time = Instant::now();
-        }
-
-        if show_text {
-            framebuffer.draw_text(width/5,(4*height)/5 - 25,"Press ENTER to start game", Color::new(255,255,255), 70.0);
-        }
-
-        window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
-        std::thread::sleep(Duration::from_millis(16));
-    }
-
-    audio.stop();
+    game_start(width, height, &mut framebuffer, &mut window);
 
     let file_path = "src/maze.txt";
     let (mut maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
