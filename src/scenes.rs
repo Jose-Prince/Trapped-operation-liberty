@@ -173,6 +173,8 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
     let mut new_pos = player.get_pos();
 
     let texture = Texture::from_file("textures/prison_wall.png");
+    let texture_cell = Texture::from_file("textures/Cell.png");
+    let texture_door = Texture::from_file("textures/Door.jpeg");
     let enemy_texture = Texture::from_file("textures/Police.png");
 
     let mut frame_count = 0;
@@ -196,7 +198,7 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
         let mut wall_heights = vec![0; framebuffer.get_width()];
     
         // Renderiza el mapa en 3D
-        render3d(framebuffer, &player, &maze, block_size, &texture, &mut wall_heights);
+        render3d(framebuffer, &player, &maze, block_size, &texture, &texture_cell, &texture_door, &mut wall_heights);
     
         // Renderiza los enemigos
         for enemy in &enemies {

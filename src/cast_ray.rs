@@ -6,6 +6,7 @@ pub struct Intersect {
     pub x: f32,
     pub y: f32,
     pub distance: f32,
+    pub character: char,  // Añadido para almacenar el carácter encontrado
 }
 
 pub fn cast_ray(
@@ -22,30 +23,36 @@ pub fn cast_ray(
     let cos = direction.cos();
     let sin = direction.sin();
 
+    let maze_height = maze.len();
+    let maze_width = maze[0].len();
+
     loop {
-        let x = (player_pos.x + cos * d) as usize;
-        let y = (player_pos.y + sin * d) as usize;
+        let x = (player_pos.x + cos * d) as f32;
+        let y = (player_pos.y + sin * d) as f32;
 
-        // Convertir block_size a usize para la división
-        let block_size_usize = block_size as usize;
+        // Convertir coordenadas del mundo a índices de la cuadrícula del laberinto
+        let i = (x / block_size).floor() as isize;
+        let j = (y / block_size).floor() as isize;
 
-        let i = (x as f32 / block_size).floor() as usize;
-        let j = (y as f32 / block_size).floor() as usize;
-
-        // Verificar que los índices están dentro de los límites
-        if j >= maze.len() || i >= maze[0].len() {
+        // Verificar que las coordenadas están dentro de los límites del laberinto
+        if j < 0 || j >= maze_height as isize || i < 0 || i >= maze_width as isize {
             return None;
         }
 
+        // Obtener el carácter en la celda
+        let cell_char = maze[j as usize][i as usize];
+
         // Verificar si la celda no es un espacio vacío y no es el punto 'p'
-        if maze[j][i] != ' ' && maze[j][i] != 'p' &&maze[j][i] != 'e' {
+        if cell_char != ' ' && cell_char != 'p' && cell_char != 'e' {
             return Some(Intersect {
-                x: x as f32,
-                y: y as f32,
+                x,
+                y,
                 distance: d,
+                character: cell_char,  // Añadir el carácter encontrado
             });
         }
 
+        // Dibujar la línea si se solicita
         if draw_line {
             if let Some(fb) = framebuffer.as_deref_mut() {
                 fb.point(x as isize, y as isize);
@@ -107,6 +114,7 @@ pub fn cast_ray_enemy(
                             x: x as f32,
                             y: y as f32,
                             distance: d,
+                            character: '\0',
                         });
                     }
                 }

@@ -18,7 +18,7 @@ use std::thread;
 fn draw_cell(framebuffer: &mut Framebuffer, x0: usize, y0: usize, block_size: usize, cell: char, opacity: f32) {
     let color = match cell {
         '+' => Color::new(5, 166, 114),   // Paredes
-        '|' | '-' => Color::new(5, 166, 114), // Paredes
+        '|' | '-' | '!' | '/' => Color::new(5, 166, 114), // Paredes
         'g' => Color::new(255, 255, 0), // Meta
         ' ' => Color::new(0, 0, 0), // Espacios vacíos
         'p' | 'e' => Color::new(0, 0, 0), // Espacio del jugador
@@ -29,7 +29,7 @@ fn draw_cell(framebuffer: &mut Framebuffer, x0: usize, y0: usize, block_size: us
         for x in 0..block_size {
             let bg_color = framebuffer.get_pixel_color((x0 + x) as isize, (y0 + y) as isize);
             let blended_color = color.blend(bg_color.expect("REASON"), opacity);
-            if (cell == '|' || cell == '-' || cell == '+') {
+            if (cell == '|' || cell == '-' || cell == '+' || cell == '!' || cell == '/') {
                 framebuffer.set_current_color(Color::new(5, 166, 114));
             } else {
                 framebuffer.set_current_color(blended_color);
@@ -172,6 +172,8 @@ pub fn render3d(
     maze: &Vec<Vec<char>>,
     block_size: f32,
     texture: &Texture,
+    texture_cell: &Texture,
+    texture_door: &Texture,
     wall_heights: &mut Vec<usize>
 ) {
     let roof_color = Color::new(102, 102, 102);
@@ -217,6 +219,13 @@ pub fn render3d(
 
             let texture_x = ((intersect.x % block_size as f32) / block_size as f32 * texture.width as f32) as usize;
 
+            let texture = match intersect.character {
+                ' ' => &texture,    // Espacio vacío: usa textura base
+                '!' => &texture_cell, // Celda: usa textura de celda
+                '/' => &texture_door, // Puerta: usa textura de puerta
+                _ => &texture,    // Por defecto, usa textura base para cualquier otro carácter
+            };
+
             for y in stake_top..stake_bottom {
                 let texture_y = ((y as f32 - stake_top as f32) / (stake_bottom as f32 - stake_top as f32) * texture.height as f32) as usize;
                 let color = texture.get_color(texture_x, texture_y);
@@ -227,9 +236,10 @@ pub fn render3d(
     }
 }
 
+
 pub fn is_wall(maze: &Vec<Vec<char>>, x: usize, y: usize) -> bool {
     if y < maze.len() && x < maze[0].len() {
-        maze[y][x] == '+' || maze[y][x] == '|' || maze[y][x] == '-'
+        maze[y][x] == '+' || maze[y][x] == '|' || maze[y][x] == '-' || maze[y][x] == '!' || maze[y][x] == '/'
     } else {
         false
     }

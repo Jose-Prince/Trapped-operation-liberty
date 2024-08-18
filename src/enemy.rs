@@ -59,7 +59,7 @@ impl Enemy {
         let maze_x = (self.pos.x / block_size) as usize;
         let maze_y = (self.pos.y / block_size) as usize;
 
-        maze[maze_y][maze_x] == '+' || maze[maze_y][maze_x] == '|' || maze[maze_y][maze_x] == '-'
+        maze[maze_y][maze_x] == '+' || maze[maze_y][maze_x] == '|' || maze[maze_y][maze_x] == '-' || maze[maze_y][maze_x] == '/' || maze[maze_y][maze_x] == '!'
     }
     
 }
