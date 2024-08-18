@@ -2,16 +2,18 @@ use rodio::{OutputStream, Sink, Decoder, Source};
 use std::fs::File;
 use std::io::BufReader;
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 pub struct AudioPlayer {
     sink: Arc<Mutex<Sink>>,
     _stream: OutputStream,
     music_file: String,
+    last_played: Instant,
+    interval: Duration,
 }
 
 impl AudioPlayer {
-    pub fn new(music_file: &str) -> Self {
+    pub fn new(music_file: &str, volume: f32) -> Self {
         let (stream, stream_handle) = OutputStream::try_default().unwrap();
 
         let sink = Sink::try_new(&stream_handle).unwrap();
@@ -20,23 +22,29 @@ impl AudioPlayer {
         let source = Decoder::new(file).unwrap();
 
         sink.append(source);
-        sink.set_volume(0.5);
+        sink.set_volume(volume);
 
         AudioPlayer {
             sink: Arc::new(Mutex::new(sink)),
             _stream: stream,
             music_file: music_file.to_string(),
+            last_played: Instant::now(),
+            interval: Duration::from_millis(500),
         }
     }
 
     pub fn play(&mut self) {
-        // Asegúrate de que `sink` esté correctamente inicializado y que `music_file` sea válido
-        let file = BufReader::new(File::open(&self.music_file).unwrap());
-        let source = Decoder::new(file).unwrap();
-        
-        let mut sink = self.sink.lock().unwrap();
-        sink.append(source);
-        sink.play();
+        let now = Instant::now();
+
+        if now.duration_since(self.last_played) >= self.interval {
+            self.last_played = now;
+            let file = BufReader::new(File::open(&self.music_file).unwrap());
+            let source = Decoder::new(file).unwrap();
+            
+            let mut sink = self.sink.lock().unwrap();
+            sink.append(source);
+            sink.play();
+        }
     }
 
     pub fn stop(&mut self) {

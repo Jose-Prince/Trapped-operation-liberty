@@ -21,7 +21,7 @@ fn calculate_fps(start_time: Instant, frame_count: usize) -> f64 {
 }
 
 pub fn game_start(width: usize, height: usize, framebuffer: &mut Framebuffer, window: &mut Window) {
-    let mut audio = AudioPlayer::new("Audio/Inicio.mp3");
+    let mut audio = AudioPlayer::new("Audio/Inicio.mp3", 0.5);
     
     audio.play();
 
@@ -181,7 +181,7 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
     // Inicializa el z_buffer
     let mut z_buffer = vec![f32::INFINITY; framebuffer.get_width()];
 
-    let mut audio = AudioPlayer::new("Audio/Footsteps.wav");
+    let mut audio = AudioPlayer::new("Audio/Footsteps.wav",0.1);
     
     while window.is_open() && !window.is_key_down(Key::Escape) {
         if let Some((mouse_x, mouse_y)) = window.get_mouse_pos(minifb::MouseMode::Clamp) {

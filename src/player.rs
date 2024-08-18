@@ -59,28 +59,27 @@ impl Player {
             audio.play();
             move_x += MOVE_SPEED * cos_a;
             move_y += MOVE_SPEED * sin_a;
-    
             key_down = 'w';
         }
         if window.is_key_down(Key::Down) || window.is_key_down(Key::S) {
+            audio.play();
             move_x -= MOVE_SPEED * cos_a;
             move_y -= MOVE_SPEED * sin_a;
-    
-            key_down = 's'
+            key_down = 's';
         }
     
         // Movimiento lateral (A y D)
         if window.is_key_down(Key::A) {
+            audio.play();
             move_x += MOVE_SPEED * sin_a;
             move_y -= MOVE_SPEED * cos_a;
-    
-            key_down = 'a'
+            key_down = 'a';
         }
         if window.is_key_down(Key::D) {
+            audio.play();
             move_x -= MOVE_SPEED * sin_a;
             move_y += MOVE_SPEED * cos_a;
-    
-            key_down = 'd'
+            key_down = 'd';
         }
     
         // Normalizar movimiento en diagonal
@@ -109,8 +108,7 @@ impl Player {
         } else {
             return ('\0', self.pos);
         }
-    }
-        
+    }       
 
     pub fn update_mouse(&mut self, mouse_x: f32, mouse_y: f32, window_width: f32, window_height: f32) {
         // Calcula el movimiento del ratón
