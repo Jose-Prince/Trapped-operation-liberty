@@ -217,17 +217,17 @@ pub fn render3d(
 
             wall_heights[i] = stake_bottom;
 
-            let texture_x = ((intersect.x % block_size as f32) / block_size as f32 * texture.width as f32) as usize;
-
-            let texture = match intersect.character {
-                ' ' => &texture,    // Espacio vacío: usa textura base
-                '!' => &texture_cell, // Celda: usa textura de celda
-                '/' => &texture_door, // Puerta: usa textura de puerta
-                _ => &texture,    // Por defecto, usa textura base para cualquier otro carácter
+            // Seleccionar la textura basada en el carácter
+            let (texture, texture_width, texture_height) = match intersect.character {
+                ' ' => (texture, texture.width, texture.height),
+                '!' => (texture_cell, texture_cell.width, texture_cell.height),
+                '/' => (texture_door, texture_door.width, texture_door.height),
+                _ => (texture, texture.width, texture.height),
             };
 
             for y in stake_top..stake_bottom {
-                let texture_y = ((y as f32 - stake_top as f32) / (stake_bottom as f32 - stake_top as f32) * texture.height as f32) as usize;
+                let texture_y = ((y as f32 - stake_top as f32) / (stake_bottom as f32 - stake_top as f32) * texture_height as f32) as usize;
+                let texture_x = ((i as f32 / num_rays as f32) * texture_width as f32) as usize;
                 let color = texture.get_color(texture_x, texture_y);
                 framebuffer.set_current_color(color);
                 framebuffer.point(i as isize, y as isize);
@@ -235,6 +235,7 @@ pub fn render3d(
         }
     }
 }
+
 
 
 pub fn is_wall(maze: &Vec<Vec<char>>, x: usize, y: usize) -> bool {
