@@ -183,5 +183,30 @@ impl Framebuffer {
             }
         }
     }
+
+    pub fn draw_image_at_position(&mut self, image_path: &str, width: usize, height: usize, pos_x: usize, pos_y: usize) {
+        // Cargar la imagen
+        let img = image::open(image_path).expect("No se pudo cargar la imagen");
+        
+        // Redimensionar la imagen a las dimensiones proporcionadas (width, height)
+        let resized_img = img.resize_exact(width as u32, height as u32, FilterType::Lanczos3);
+        
+        // Dibujar la imagen en el framebuffer en la posición especificada (pos_x, pos_y)
+        for y in 0..height {
+            for x in 0..width {
+                // Asegurarse de que los píxeles estén dentro de los límites del framebuffer
+                if pos_x + x < self.width && pos_y + y < self.height {
+                    let pixel = resized_img.get_pixel(x as u32, y as u32);
+                    let rgba = pixel.0;
+                    let r = rgba[0] as u32;
+                    let g = rgba[1] as u32;
+                    let b = rgba[2] as u32;
+                    let a = rgba[3] as u32;
     
+                    // Insertar el píxel en el framebuffer en la posición correcta
+                    self.buffer[((y + pos_y) * self.width + (x + pos_x)) as usize] = (a << 24) | (r << 16) | (g << 8) | b;
+                }
+            }
+        }
+    }    
 }

@@ -90,65 +90,65 @@ fn main() {
 
     
     
-    while window.is_open() && !window.is_key_down(Key::Escape) {
-        if let Some((mouse_x, mouse_y)) = window.get_mouse_pos(minifb::MouseMode::Clamp) {
-            player.update_mouse(mouse_x as f32, mouse_y as f32, width as f32, height as f32);
-        }
+    // while window.is_open() && !window.is_key_down(Key::Escape) {
+    //     if let Some((mouse_x, mouse_y)) = window.get_mouse_pos(minifb::MouseMode::Clamp) {
+    //         player.update_mouse(mouse_x as f32, mouse_y as f32, width as f32, height as f32);
+    //     }
 
-        (key_down, new_pos) = player.process_events(&window, &maze, block_size, &mut framebuffer);
+    //     (key_down, new_pos) = player.process_events(&window, &maze, block_size, &mut framebuffer);
 
-        framebuffer.clear();
+    //     framebuffer.clear();
 
-        let mut wall_heights = vec![0; framebuffer.get_width()];
+    //     let mut wall_heights = vec![0; framebuffer.get_width()];
 
         
-        // Renderiza el mapa en 3D
-        render3d(&mut framebuffer, &player, &maze, block_size, &texture, &mut wall_heights);
+    //     // Renderiza el mapa en 3D
+    //     render3d(&mut framebuffer, &player, &maze, block_size, &texture, &mut wall_heights);
 
-        // Renderiza los enemigos
-        for enemy in &enemies {
-            render_enemy(
-                &mut framebuffer,
-                &player,
-                &enemy.get_pos(),
-                &mut z_buffer,
-                &enemy_texture,
-                &wall_heights,
-                300.0,
-                &maze,
-                block_size
-            );
-        }
-        maze = minimap(&mut framebuffer, maze.clone(), 0.5, key_down, player.get_a(), og_pos, new_pos);
+    //     // Renderiza los enemigos
+    //     for enemy in &enemies {
+    //         render_enemy(
+    //             &mut framebuffer,
+    //             &player,
+    //             &enemy.get_pos(),
+    //             &mut z_buffer,
+    //             &enemy_texture,
+    //             &wall_heights,
+    //             300.0,
+    //             &maze,
+    //             block_size
+    //         );
+    //     }
+    //     maze = minimap(&mut framebuffer, maze.clone(), 0.5, key_down, player.get_a(), og_pos, new_pos);
         
-        let delta_time = 1.0 / 30.0;
+    //     let delta_time = 1.0 / 30.0;
         
-        // Actualiza todos los enemigos
-        for enemy in &mut enemies {            
-            enemy.update(delta_time, &maze, block_size);
-            draw_enemies_position(&mut framebuffer, &enemy.get_pos(), block_size as usize);
-            draw_enemy_fov(&mut framebuffer, &enemy, 30, &maze, block_size);
-        }
+    //     // Actualiza todos los enemigos
+    //     for enemy in &mut enemies {            
+    //         enemy.update(delta_time, &maze, block_size);
+    //         draw_enemies_position(&mut framebuffer, &enemy.get_pos(), block_size as usize);
+    //         draw_enemy_fov(&mut framebuffer, &enemy, 30, &maze, block_size);
+    //     }
 
-        let (maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
+    //     let (maze, player_pos) = render(&mut framebuffer, file_path, 0.5);
         
-        // Dibuja la posición del jugador en el minimapa
-        draw_player_position(&mut framebuffer, player.get_pos(), block_size as usize);
+    //     // Dibuja la posición del jugador en el minimapa
+    //     draw_player_position(&mut framebuffer, player.get_pos(), block_size as usize);
 
-        // Dibuja las posiciones de los enemigos en el minimapa
+    //     // Dibuja las posiciones de los enemigos en el minimapa
         
-        frame_count += 1;
-        let fps = calculate_fps(start_time, frame_count);
+    //     frame_count += 1;
+    //     let fps = calculate_fps(start_time, frame_count);
         
-        if window.is_key_down(Key::F) {
-            framebuffer.draw_text(width - 100, 10, &format!("FPS: {:.2}", fps), Color::new(0, 255, 0), 20.0);
-        } else {
-            framebuffer.draw_text(width - 100, 10, "", Color::new(0, 255, 0), 20.0);
-        }
+    //     if window.is_key_down(Key::F) {
+    //         framebuffer.draw_text(width - 100, 10, &format!("FPS: {:.2}", fps), Color::new(0, 255, 0), 20.0);
+    //     } else {
+    //         framebuffer.draw_text(width - 100, 10, "", Color::new(0, 255, 0), 20.0);
+    //     }
 
-        og_pos = new_pos;
+    //     og_pos = new_pos;
         
-        window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
-        std::thread::sleep(Duration::from_millis(16));
-    }
+    //     window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
+    //     std::thread::sleep(Duration::from_millis(16));
+    // }
 }
