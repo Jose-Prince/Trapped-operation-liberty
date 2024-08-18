@@ -137,7 +137,17 @@ pub fn level_selector(framebuffer: &mut Framebuffer, window: &mut Window, width:
         window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
         std::thread::sleep(Duration::from_millis(16));
     }
-    gameplay(framebuffer, "src/maze.txt", width, height, window);
+
+    let mut file_path = "";
+
+    match option {
+        0 => file_path = "src/maze1.txt",
+        1 => file_path = "src/maze2.txt",
+        2 => file_path = "src/maze3.txt",
+        _ => file_path = "src/maze1.txt",
+    }
+
+    gameplay(framebuffer, file_path, width, height, window);
 }
 
 
