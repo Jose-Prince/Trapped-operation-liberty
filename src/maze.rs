@@ -174,7 +174,7 @@ pub fn render3d(
     texture: &Texture,
     texture_cell: &Texture,
     texture_door: &Texture,
-    wall_heights: &mut Vec<usize>
+    wall_heights: &mut Vec<usize>,
 ) {
     let roof_color = Color::new(102, 102, 102);
     let floor_color = Color::new(187, 187, 187);
@@ -238,11 +238,11 @@ pub fn render3d(
 
 
 
-pub fn is_wall(maze: &Vec<Vec<char>>, x: usize, y: usize) -> bool {
+pub fn is_wall(maze: &Vec<Vec<char>>, x: usize, y: usize) -> (bool, char) {
     if y < maze.len() && x < maze[0].len() {
-        maze[y][x] == '+' || maze[y][x] == '|' || maze[y][x] == '-' || maze[y][x] == '!' || maze[y][x] == '/'
+        return (maze[y][x] == '+' || maze[y][x] == '|' || maze[y][x] == '-' || maze[y][x] == '!' || maze[y][x] == '/', maze[y][x])
     } else {
-        false
+        return (false, '\0')
     }
 }
 

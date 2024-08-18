@@ -192,6 +192,10 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
     
         // Cambia `audio` a referencia mutable
         let (key_down, new_pos) = player.process_events(&window, &maze, block_size, framebuffer, &mut audio);
+
+        if key_down == '/' {
+            break;
+        }
     
         framebuffer.clear();
     
@@ -243,13 +247,50 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
         window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
         std::thread::sleep(Duration::from_millis(16));
     }
+
+    framebuffer.clear();
+    win_screen(framebuffer, window, width, height);
     
 }
 
+pub fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {
+    let win_page = "textures/Ganar.png";
+    let mut endgame = true;
 
-pub fn win_screen() {
+    let mut audio_shot = AudioPlayer::new("Audio/Shot.wav", 0.5);
+    let mut shot_count = 0;
 
+    while window.is_open() && endgame {
+        // Reproducir el audio solo si se ha reproducido menos de dos veces
+        if shot_count < 2 {
+            audio_shot.play();
+            shot_count += 1;
+            std::thread::sleep(Duration::from_millis(1000));
+        }
+
+        framebuffer.clear();
+        framebuffer.draw_image(&win_page, width, height);
+        framebuffer.draw_text(width / 5 + 55, 5 * height / 6, "Press R to play again", Color::new(255, 255, 255), 60.0);
+
+        // Comprobar si se ha presionado la tecla 'R' para continuar con el juego
+        if window.is_key_down(minifb::Key::R) {
+            endgame = false;
+        }
+
+        // Comprobar si se ha presionado la tecla 'Escape' para salir
+        if window.is_key_down(minifb::Key::Escape) {
+            break; // Salir del bucle y cerrar la ventana
+        }
+
+        window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
+        std::thread::sleep(Duration::from_millis(16));
+    }
+
+    if !endgame {
+        game_start(width, height, framebuffer, window);
+    }
 }
+
 
 pub fn defeat_screen() {
 

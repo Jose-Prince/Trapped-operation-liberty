@@ -102,11 +102,16 @@ impl Player {
         }
     
         let new_pos = Vec2::new(self.pos.x + move_x, self.pos.y + move_y);
-        if !is_wall(maze, (new_pos.x / block_size as f32) as usize, (new_pos.y / block_size as f32) as usize) {
+        let (is_collision, char_wall) = is_wall(maze, (new_pos.x / block_size as f32) as usize, (new_pos.y / block_size as f32) as usize);
+        if !is_collision {
             self.pos = new_pos;
             return (key_down, self.pos);
         } else {
-            return ('\0', self.pos);
+            if char_wall == '/' {
+                return ('/', self.pos);
+            } else {
+                return ('\0', self.pos);
+            }
         }
     }       
 

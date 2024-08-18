@@ -20,7 +20,7 @@ use player::Player;
 use polygon::Polygon;
 use audioPlayer::AudioPlayer;
 use line::Line;
-use scenes::{game_start};
+use scenes::{win_screen};
 use maze::{render, render3d, render_enemies_pos, render_enemy, draw_player_position, draw_enemies_position, draw_enemy_fov, minimap};
 use minifb::{Window, WindowOptions, Key};
 use image::GenericImageView;
@@ -48,6 +48,6 @@ fn main() {
         panic!("{}", e);
     });
 
-    game_start(width, height, &mut framebuffer, &mut window);
+    win_screen(&mut framebuffer, &mut window, width, height);
 
 }
