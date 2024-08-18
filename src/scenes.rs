@@ -258,19 +258,33 @@ pub fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usi
     let mut endgame = true;
 
     let mut audio_shot = AudioPlayer::new("Audio/Shot.wav", 0.5);
+    let mut audio_music = AudioPlayer::new("Audio/Liberado.mp3", 0.5);
     let mut shot_count = 0;
 
+    let mut show_victory_screen = false;
+
     while window.is_open() && endgame {
-        // Reproducir el audio solo si se ha reproducido menos de dos veces
+        // Limpiar el framebuffer a negro antes de mostrar cualquier cosa
+        framebuffer.clear();
+
         if shot_count < 2 {
+            // Reproducir el audio de disparo y esperar un segundo entre reproducciones
             audio_shot.play();
             shot_count += 1;
             std::thread::sleep(Duration::from_millis(1000));
+        } else if !show_victory_screen {
+            // Solo después del segundo disparo se muestra la pantalla de victoria
+            show_victory_screen = true;
         }
 
-        framebuffer.clear();
-        framebuffer.draw_image(&win_page, width, height);
-        framebuffer.draw_text(width / 5 + 55, 5 * height / 6, "Press R to play again", Color::new(255, 255, 255), 60.0);
+        if show_victory_screen {
+            // Mostrar la imagen y el texto solo después del segundo disparo
+            framebuffer.draw_image(&win_page, width, height);
+            framebuffer.draw_text(width / 5 + 55, 5 * height / 6, "Press R to play again", Color::new(255, 255, 255), 60.0);
+            
+            // Reproducir la música de fondo
+            audio_music.play();
+        }
 
         // Comprobar si se ha presionado la tecla 'R' para continuar con el juego
         if window.is_key_down(minifb::Key::R) {
