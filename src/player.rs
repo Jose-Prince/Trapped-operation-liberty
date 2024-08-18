@@ -1,6 +1,7 @@
 use nalgebra_glm::Vec2;
 use minifb::{Window, Key};
 use std::f32::consts::PI;
+use crate::AudioPlayer;
 use crate::maze::is_wall;
 use crate::Framebuffer;
 use crate::Color;
@@ -34,7 +35,7 @@ impl Player {
         self.a
     }
 
-    pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: f32, framebuffer: &mut Framebuffer) -> (char, Vec2) {
+    pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: f32, framebuffer: &mut Framebuffer, audio: &mut AudioPlayer) -> (char, Vec2) {
         const MOVE_SPEED: f32 = 5.0;
         const ROTATION_SPEED: f32 = std::f32::consts::PI / 30.0;
         let mut key_down = '\0';
@@ -55,15 +56,16 @@ impl Player {
     
         // Movimiento hacia adelante y hacia atrás (W y S)
         if window.is_key_down(Key::Up) || window.is_key_down(Key::W) {
+            audio.play();
             move_x += MOVE_SPEED * cos_a;
             move_y += MOVE_SPEED * sin_a;
-
+    
             key_down = 'w';
         }
         if window.is_key_down(Key::Down) || window.is_key_down(Key::S) {
             move_x -= MOVE_SPEED * cos_a;
             move_y -= MOVE_SPEED * sin_a;
-
+    
             key_down = 's'
         }
     
@@ -71,13 +73,13 @@ impl Player {
         if window.is_key_down(Key::A) {
             move_x += MOVE_SPEED * sin_a;
             move_y -= MOVE_SPEED * cos_a;
-
+    
             key_down = 'a'
         }
         if window.is_key_down(Key::D) {
             move_x -= MOVE_SPEED * sin_a;
             move_y += MOVE_SPEED * cos_a;
-
+    
             key_down = 'd'
         }
     
@@ -107,7 +109,8 @@ impl Player {
         } else {
             return ('\0', self.pos);
         }
-    }        
+    }
+        
 
     pub fn update_mouse(&mut self, mouse_x: f32, mouse_y: f32, window_width: f32, window_height: f32) {
         // Calcula el movimiento del ratón
