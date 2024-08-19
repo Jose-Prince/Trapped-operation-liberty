@@ -268,7 +268,7 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
 
 pub fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {
     let win_page = "textures/Ganar.png";
-    let mut endgame = true;
+    let mut restart_game = false;
 
     let mut audio_shot = AudioPlayer::new("Audio/Shot.wav", 0.5);
     let mut audio_music = AudioPlayer::new("Audio/Liberado.mp3", 0.5);
@@ -301,19 +301,15 @@ pub fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usi
 
         // Comprobar si se ha presionado la tecla 'R' para continuar con el juego
         if window.is_key_down(minifb::Key::R) {
-            endgame = false;
-        }
-
-        // Comprobar si se ha presionado la tecla 'Escape' para salir
-        if window.is_key_down(minifb::Key::Escape) {
-            break; // Salir del bucle y cerrar la ventana
+            restart_game = true;
+            break;
         }
 
         window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
         std::thread::sleep(Duration::from_millis(16));
     }
     
-    if !endgame {
+    if restart_game {
         audio_music.stop();
         game_start(width, height, framebuffer, window);
     }
