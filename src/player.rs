@@ -35,10 +35,10 @@ impl Player {
         self.a
     }
 
-    pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: f32, framebuffer: &mut Framebuffer, audio: &mut AudioPlayer) -> (char, Vec2) {
+    pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: f32, framebuffer: &mut Framebuffer, audio: &mut AudioPlayer) -> (String, Vec2) {
         const MOVE_SPEED: f32 = 5.0;
         const ROTATION_SPEED: f32 = std::f32::consts::PI / 30.0;
-        let mut key_down = '\0';
+        let mut key_down = String::new();
         
         let cos_a = self.a.cos();
         let sin_a = self.a.sin();
@@ -59,13 +59,13 @@ impl Player {
             audio.play();
             move_x += MOVE_SPEED * cos_a;
             move_y += MOVE_SPEED * sin_a;
-            key_down = 'w';
+            key_down.push('w');
         }
         if window.is_key_down(Key::Down) || window.is_key_down(Key::S) {
             audio.play();
             move_x -= MOVE_SPEED * cos_a;
             move_y -= MOVE_SPEED * sin_a;
-            key_down = 's';
+            key_down.push('s');
         }
     
         // Movimiento lateral (A y D)
@@ -73,13 +73,13 @@ impl Player {
             audio.play();
             move_x += MOVE_SPEED * sin_a;
             move_y -= MOVE_SPEED * cos_a;
-            key_down = 'a';
+            key_down.push('a');
         }
         if window.is_key_down(Key::D) {
             audio.play();
             move_x -= MOVE_SPEED * sin_a;
             move_y += MOVE_SPEED * cos_a;
-            key_down = 'd';
+            key_down.push('d');
         }
     
         // Normalizar movimiento en diagonal
@@ -87,18 +87,22 @@ impl Player {
         if (window.is_key_down(Key::W) || window.is_key_down(Key::Up)) && window.is_key_down(Key::A) {
             move_x = diagonal_speed * (cos_a + sin_a);
             move_y = diagonal_speed * (sin_a - cos_a);
+            key_down.push_str("wa");
         }
         if (window.is_key_down(Key::W) || window.is_key_down(Key::Up)) && window.is_key_down(Key::D) {
             move_x = diagonal_speed * (cos_a - sin_a);
             move_y = diagonal_speed * (sin_a + cos_a);
+            key_down.push_str("wd");
         }
         if (window.is_key_down(Key::S) || window.is_key_down(Key::Down)) && window.is_key_down(Key::A) {
             move_x = diagonal_speed * (-cos_a + sin_a);
             move_y = diagonal_speed * (-sin_a - cos_a);
+            key_down.push_str("sa");
         }
         if (window.is_key_down(Key::S) || window.is_key_down(Key::Down)) && window.is_key_down(Key::D) {
             move_x = diagonal_speed * (-cos_a - sin_a);
             move_y = diagonal_speed * (-sin_a + cos_a);
+            key_down.push_str("sd");
         }
     
         let new_pos = Vec2::new(self.pos.x + move_x, self.pos.y + move_y);
@@ -108,12 +112,13 @@ impl Player {
             return (key_down, self.pos);
         } else {
             if char_wall == '/' {
-                return ('/', self.pos);
+                return ("/".to_string(), self.pos);
             } else {
-                return ('\0', self.pos);
+                return (String::new(), self.pos);
             }
         }
-    }       
+    }
+    
 
     pub fn update_mouse(&mut self, mouse_x: f32, mouse_y: f32, window_width: f32, window_height: f32) {
         // Calcula el movimiento del ratón

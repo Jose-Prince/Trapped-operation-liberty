@@ -21,7 +21,7 @@ fn draw_cell(framebuffer: &mut Framebuffer, x0: usize, y0: usize, block_size: us
         '|' | '-' | '!' | '/' => Color::new(5, 166, 114), // Paredes
         'g' => Color::new(255, 255, 0), // Meta
         ' ' => Color::new(0, 0, 0), // Espacios vacíos
-        'p' | 'e' => Color::new(0, 0, 0), // Espacio del jugador
+        'p' | 'e' => Color::new(255, 0, 0), // Espacio del jugador
         _ => Color::new(0, 0, 0),        // Color por defecto para caracteres desconocidos
     };
 
@@ -285,7 +285,7 @@ pub fn minimap(
     framebuffer: &mut Framebuffer,
     mut maze: Vec<Vec<char>>,
     opacity: f32,
-    key_down: char,
+    key_down: String,
     direction: f32,
     og_pos: Vec2,
     new_pos: Vec2,
@@ -310,8 +310,10 @@ pub fn minimap(
     let new_pos_block_y = new_pos.y / block_size as f32;
 
     if new_pos_block_x.floor() != og_pos_block_x.floor() || new_pos_block_y.floor() != og_pos_block_y.floor() {
-        if key_down == 'w' || key_down == 's' || key_down == 'a' || key_down == 'd' {
-            maze = update_minimap(maze, key_down, direction);
+        let key_down_str = key_down.as_str();
+
+        if key_down_str == "w" || key_down_str == "s" || key_down_str == "a" || key_down_str == "d" || key_down_str == "wawa" || key_down_str == "wdwd" || key_down_str == "sasa" || key_down_str == "sdsd"{
+            maze = update_minimap(maze, key_down_str.to_string(), direction);
         }
     }
 
@@ -351,6 +353,7 @@ pub fn minimap(
     maze
 }
 
+
 // Función para dibujar el fondo negro con opacidad
 fn draw_background(framebuffer: &mut Framebuffer, x: usize, y: usize, width: usize, height: usize, opacity: f32) {
     let color = Color::new(0,0,0);
@@ -368,26 +371,47 @@ fn draw_background(framebuffer: &mut Framebuffer, x: usize, y: usize, width: usi
 
 
 
-fn update_minimap(mut maze: Vec<Vec<char>>, key_down: char, direction: f32) -> Vec<Vec<char>> {
+fn update_minimap(mut maze: Vec<Vec<char>>, key_down: String, direction: f32) -> Vec<Vec<char>> {
     let mut x_dir = direction.cos().round() as isize;  
     let mut y_dir = direction.sin().round() as isize;
 
     // Ajusta la dirección basada en la tecla presionada
-    match key_down {
-        'w' => { /* No se cambia la dirección */ },
-        's' => {
+    match key_down.as_str() {
+        "w" => { /* No se cambia la dirección */ },
+        "s" => {
             x_dir = -x_dir;
             y_dir = -y_dir;
         },
-        'a' => {
+        "a" => {
             let angle = direction - std::f32::consts::FRAC_PI_2; // Gira 90 grados hacia la izquierda
             x_dir = angle.cos().round() as isize;
             y_dir = angle.sin().round() as isize;
         },
-        'd' => {
+        "d" => {
             let angle = direction + std::f32::consts::FRAC_PI_2; // Gira 90 grados hacia la derecha
             x_dir = angle.cos().round() as isize;
             y_dir = angle.sin().round() as isize;
+        },
+        "wawa" => {
+            let angle = direction - std::f32::consts::FRAC_PI_4; // Movimiento hacia adelante y diagonal
+            x_dir = (angle.cos() * 1.0).round() as isize;
+            y_dir = (angle.sin() * 1.0).round() as isize;
+
+        },
+        "wdwd" => {
+            let angle = direction + std::f32::consts::FRAC_PI_4; // Movimiento diagonal hacia adelante y hacia la derecha
+            x_dir = (angle.cos() * 1.0).round() as isize;
+            y_dir = (angle.sin() * 1.0).round() as isize;
+        },
+        "sasa" => {
+            let angle = direction - std::f32::consts::FRAC_PI_2 - std::f32::consts::FRAC_PI_4; // Movimiento diagonal hacia adelante y hacia la izquierda
+            x_dir = (angle.cos() * 1.0).round() as isize;
+            y_dir = (angle.sin() * 1.0).round() as isize;
+        },
+        "sdsd" => {
+            let angle = direction + std::f32::consts::FRAC_PI_2 + std::f32::consts::FRAC_PI_4; // Movimiento diagonal hacia atrás y hacia la derecha
+            x_dir = (angle.cos() * 1.0).round() as isize;
+            y_dir = (angle.sin() * 1.0).round() as isize;
         },
         _ => { return maze; } // Si no es una tecla válida, no hacer nada
     }

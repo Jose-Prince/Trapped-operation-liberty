@@ -153,7 +153,7 @@ pub fn level_selector(framebuffer: &mut Framebuffer, window: &mut Window, width:
 
 pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, height: usize, window: &mut Window) {
     let (mut maze, player_pos) = render(framebuffer, file_path, 0.5);
-    let mut key_down = '\0';
+    let mut key_down = String::new(); // Cambiado a String
 
     let enemies_pos = render_enemies_pos(framebuffer, file_path);
     let block_size = std::cmp::min(
@@ -187,15 +187,17 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
 
     let mut enemy_collision = true;
     
-    while window.is_open() && !window.is_key_down(Key::Escape) && enemy_collision{
+    while window.is_open() && !window.is_key_down(Key::Escape) && enemy_collision {
         if let Some((mouse_x, mouse_y)) = window.get_mouse_pos(minifb::MouseMode::Clamp) {
             player.update_mouse(mouse_x as f32, mouse_y as f32, width as f32, height as f32);
         }
     
         // Cambia `audio` a referencia mutable
-        let (key_down, new_pos) = player.process_events(&window, &maze, block_size, framebuffer, &mut audio);
+        let (key_down_str, new_pos) = player.process_events(&window, &maze, block_size, framebuffer, &mut audio);
 
-        if key_down == '/' {
+        key_down = key_down_str; // Actualiza el valor de `key_down` con el valor de `key_down_str`
+
+        if key_down == "/" {
             break;
         }
     
@@ -260,10 +262,9 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
     } else {
         framebuffer.clear();
         defeat_screen(framebuffer, window, width, height);
-    }
-
-    
+    }  
 }
+
 
 pub fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {
     let win_page = "textures/Ganar.png";
