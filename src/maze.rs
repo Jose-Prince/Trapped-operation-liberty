@@ -210,7 +210,7 @@ pub fn render3d(
         if let Some(intersect) = cast_ray(&player.pos, angle, maze, block_size, false, 1000.0, None) {
             let distance_to_wall = intersect.distance; // Distance to wall
             let corrected_distance = distance_to_wall * (angle - player.a).cos(); // Correct fish-eye effect
-            let stake_height = (block_size as f32 * distance_to_projection_plane / corrected_distance).min(hh * 2.0);
+            let stake_height = (block_size * distance_to_projection_plane / corrected_distance).min(hh * 2.0);
 
             let stake_top = (hh - (stake_height / 2.0)) as usize;
             let stake_bottom = (hh + (stake_height / 2.0)) as usize;
@@ -225,9 +225,18 @@ pub fn render3d(
                 _ => (texture, texture.width, texture.height),
             };
 
+            let texture_width = texture_width as f32;
+            let texture_height = texture_height as f32;
+
+            // Mapeo de textura para la pared
+            let texture_x_step = texture_width / block_size;
+            let texture_y_step = texture_height / stake_height;
+
+            let wall_x = intersect.x % block_size;
+            let mut texture_x = (wall_x * texture_x_step) as usize;
+
             for y in stake_top..stake_bottom {
-                let texture_y = ((y as f32 - stake_top as f32) / (stake_bottom as f32 - stake_top as f32) * texture_height as f32) as usize;
-                let texture_x = ((i as f32 / num_rays as f32) * texture_width as f32) as usize;
+                let texture_y = ((y as f32 - stake_top as f32) * texture_y_step) as usize;
                 let color = texture.get_color(texture_x, texture_y);
                 framebuffer.set_current_color(color);
                 framebuffer.point(i as isize, y as isize);
@@ -235,6 +244,8 @@ pub fn render3d(
         }
     }
 }
+
+
 
 
 
