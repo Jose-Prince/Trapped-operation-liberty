@@ -184,8 +184,10 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
     let mut z_buffer = vec![f32::INFINITY; framebuffer.get_width()];
 
     let mut audio = AudioPlayer::new("Audio/Footsteps.wav",0.1);
+
+    let mut enemy_collision = true;
     
-    while window.is_open() && !window.is_key_down(Key::Escape) {
+    while window.is_open() && !window.is_key_down(Key::Escape) && enemy_collision{
         if let Some((mouse_x, mouse_y)) = window.get_mouse_pos(minifb::MouseMode::Clamp) {
             player.update_mouse(mouse_x as f32, mouse_y as f32, width as f32, height as f32);
         }
@@ -225,9 +227,13 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
     
         // Actualiza todos los enemigos
         for enemy in &mut enemies {
-            enemy.update(delta_time, &maze, block_size);
+            let check_collision = enemy.update(delta_time, &maze, block_size);
             draw_enemies_position(framebuffer, &enemy.get_pos(), block_size as usize);
             draw_enemy_fov(framebuffer, &enemy, 30, &maze, block_size);
+            if check_collision {
+                enemy_collision = false;
+                break;
+            }
         }
     
         let (maze, player_pos) = render(framebuffer, file_path, 0.5);
@@ -248,8 +254,14 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
         std::thread::sleep(Duration::from_millis(16));
     }
 
-    framebuffer.clear();
-    win_screen(framebuffer, window, width, height);
+    if enemy_collision {
+        framebuffer.clear();
+        win_screen(framebuffer, window, width, height);
+    } else {
+        framebuffer.clear();
+        defeat_screen(framebuffer, window, width, height);
+    }
+
     
 }
 
@@ -299,13 +311,38 @@ pub fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usi
         window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
         std::thread::sleep(Duration::from_millis(16));
     }
-
+    
     if !endgame {
+        audio_music.stop();
         game_start(width, height, framebuffer, window);
     }
 }
 
 
-pub fn defeat_screen() {
+pub fn defeat_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {
+    let defeat_screen = "textures/Perdida.png";
 
+    let mut restart_game = false;
+
+    let mut audio_end = AudioPlayer::new("Audio/Atrapado.mp3", 0.5);
+
+    while window.is_open() && !window.is_key_down(minifb::Key::Escape) {
+        framebuffer.clear();
+
+        framebuffer.draw_image(&defeat_screen, width, height);
+        framebuffer.draw_text(width / 5 + 55, 5 * height / 6, "Press R to play again", Color::new(255, 255, 255), 60.0);
+
+        if window.is_key_down(minifb::Key::R) {
+            restart_game = true;
+            break;
+        }
+
+        window.update_with_buffer(&framebuffer.get_buffer(), width, height).unwrap();
+        std::thread::sleep(Duration::from_millis(16));
+    }
+
+    if restart_game {
+        audio_end.stop();
+        game_start(width, height, framebuffer, window);
+    }
 }

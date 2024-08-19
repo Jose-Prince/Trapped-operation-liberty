@@ -33,7 +33,7 @@ impl Enemy {
         self.pos = new_pos;
     }
 
-    pub fn update(&mut self, delta_time: f32, maze: &Vec<Vec<char>>, block_size: f32) {
+    pub fn update(&mut self, delta_time: f32, maze: &Vec<Vec<char>>, block_size: f32) -> bool {
         let new_pos = Vec2::new(
             self.pos.x + self.a.cos() * self.speed * delta_time,
             self.pos.y + self.a.sin() * self.speed * delta_time,
@@ -48,10 +48,15 @@ impl Enemy {
         };
 
         if temp_enemy.check_collision_with_wall(maze, block_size) {
-
             self.a = -self.a;
         } else {
             self.pos = new_pos;
+        }
+
+        if temp_enemy.check_collision_with_player(maze, block_size) {
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -60,6 +65,13 @@ impl Enemy {
         let maze_y = (self.pos.y / block_size) as usize;
 
         maze[maze_y][maze_x] == '+' || maze[maze_y][maze_x] == '|' || maze[maze_y][maze_x] == '-' || maze[maze_y][maze_x] == '/' || maze[maze_y][maze_x] == '!'
+    }
+
+    pub fn check_collision_with_player(&self, maze: &Vec<Vec<char>>, block_size: f32) -> bool {
+        let maze_x = (self.pos.x / block_size) as usize;
+        let maze_y = (self.pos.y / block_size) as usize;
+
+        maze[maze_y][maze_x] == 'p'
     }
     
 }
