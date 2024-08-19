@@ -275,7 +275,7 @@ pub fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usi
 
     let mut show_victory_screen = false;
 
-    while window.is_open() && endgame {
+    while window.is_open() && !window.is_key_down(minifb::Key::Escape) {
         // Limpiar el framebuffer a negro antes de mostrar cualquier cosa
         framebuffer.clear();
 
