@@ -164,7 +164,7 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
     let mut enemies: Vec<Enemy> = Vec::new();
 
     for pos in &enemies_pos {
-        enemies.push(Enemy::new(*pos, PI / 2.0, -10.0, 20.0, framebuffer.get_height() as f32));
+        enemies.push(Enemy::new(*pos, PI / 2.0, -125.0, 20.0, framebuffer.get_height() as f32));
     }
 
     let mut player = Player::new(player_pos.x, player_pos.y, 0.0, PI / 3.0);

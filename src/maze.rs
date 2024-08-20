@@ -390,7 +390,6 @@ pub fn minimap(
 
             if is_visible || is_border_cell {
                 if maze[row][col] == 'e' {
-                    println!("Enemy detected at position ({}, {})", row, col);
                     enemy_in_map = true;
                 }
                 draw_cell(framebuffer, x0, y0, scaled_block_size, maze[row][col], opacity);
