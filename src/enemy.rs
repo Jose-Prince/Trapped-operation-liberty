@@ -68,10 +68,24 @@ impl Enemy {
     }
 
     pub fn check_collision_with_player(&self, maze: &Vec<Vec<char>>, block_size: f32) -> bool {
-        let maze_x = (self.pos.x / block_size) as usize;
-        let maze_y = (self.pos.y / block_size) as usize;
-
-        maze[maze_y][maze_x] == 'p'
+        let cos_a = self.a.cos().round();
+        let sin_a = self.a.sin().round();
+    
+        let maze_x = (self.pos.x / block_size).floor() as isize;
+        let maze_y = (self.pos.y / block_size).floor() as isize;
+    
+        let lookahead_x = maze_x - cos_a as isize;
+        let lookahead_y = maze_y - sin_a as isize;
+    
+        // Verifica que los índices estén dentro de los límites
+        if maze_y >= 0 && maze_x >= 0 && (maze_y as usize) < maze.len() && (maze_x as usize) < maze[0].len() {    
+            if lookahead_y >= 0 && lookahead_x >= 0 && (lookahead_y as usize) < maze.len() && (lookahead_x as usize) < maze[0].len() {    
+                return maze[maze_y as usize][maze_x as usize] == 'p' || maze[lookahead_y as usize][lookahead_x as usize] == 'p';
+            }
+        }
+    
+        false
     }
+    
     
 }

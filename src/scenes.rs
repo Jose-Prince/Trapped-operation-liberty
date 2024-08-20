@@ -212,18 +212,18 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
         for enemy in &enemies {
             render_enemy(
                 framebuffer,
-                &player,
+                &mut player,
                 &enemy.get_pos(),
                 &mut z_buffer,
                 &enemy_texture,
                 &wall_heights,
-                300.0,
+                150.0,
                 &maze,
                 block_size,
             );
         }
     
-        maze = minimap(framebuffer, maze.clone(), 0.5, key_down, player.get_a(), og_pos, new_pos);
+        maze = minimap(framebuffer, maze.clone(), 0.5, key_down, player.get_a(), og_pos, new_pos, &mut enemies, block_size as usize);
     
         let delta_time = 1.0 / 30.0;
     

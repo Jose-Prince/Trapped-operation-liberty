@@ -127,7 +127,7 @@ pub fn render_enemy(
     let start_x = (screen_width / 2.0) + (sprite_a - player_a) * (screen_height / player.fov) - (sprite_size / 2.0);
 
     // Desplazamiento hacia abajo
-    let min_offset_down = 25.0;
+    let min_offset_down = 15.0;
     let max_offset_down = 200.0; // Ajusta el valor máximo según sea necesario
     let max_distance = 1.0; // Ajusta la distancia máxima según sea necesario
 
@@ -300,6 +300,8 @@ pub fn minimap(
     direction: f32,
     og_pos: Vec2,
     new_pos: Vec2,
+    enemies: &mut Vec<Enemy>,
+    block_size: usize
 ) -> Vec<Vec<char>> {
     let rows = maze.len();
     let cols = maze[0].len();
@@ -324,7 +326,7 @@ pub fn minimap(
         let key_down_str = key_down.as_str();
 
         if key_down_str == "w" || key_down_str == "s" || key_down_str == "a" || key_down_str == "d" || key_down_str == "wawa" || key_down_str == "wdwd" || key_down_str == "sasa" || key_down_str == "sdsd"{
-            maze = update_minimap(maze, key_down_str.to_string(), direction);
+            maze = update_minimap(maze, key_down_str.to_string(), direction, enemies, block_size);
         }
     }
 
@@ -382,7 +384,7 @@ fn draw_background(framebuffer: &mut Framebuffer, x: usize, y: usize, width: usi
 
 
 
-fn update_minimap(mut maze: Vec<Vec<char>>, key_down: String, direction: f32) -> Vec<Vec<char>> {
+fn update_minimap(mut maze: Vec<Vec<char>>, key_down: String, direction: f32, enemies: &mut Vec<Enemy>, block_size: usize) -> Vec<Vec<char>> {
     let mut x_dir = direction.cos().round() as isize;  
     let mut y_dir = direction.sin().round() as isize;
 
@@ -449,6 +451,24 @@ fn update_minimap(mut maze: Vec<Vec<char>>, key_down: String, direction: f32) ->
            (maze[new_row as usize][new_col as usize] == ' ' || maze[new_row as usize][new_col as usize] == 'e'){
             maze[new_row as usize][new_col as usize] = 'p';
             maze[row as usize][col as usize] = ' ';
+        }
+    }
+
+    for row in 0..maze.len() {
+        for col in 0..maze[row].len() {
+            if maze[row][col] == 'e' {
+                maze[row][col] = ' ';
+            }
+        }
+    }
+
+    for enemy in &mut *enemies {
+        let enemy_pos_x = (enemy.get_pos().x / block_size as f32) as usize;
+        let enemy_pos_y = (enemy.get_pos().y / block_size as f32) as usize;
+    
+        // Asegurarse de que las coordenadas estén dentro del rango
+        if enemy_pos_y < maze.len() && enemy_pos_x < maze[enemy_pos_y].len() && maze[enemy_pos_y][enemy_pos_x] != 'p' {
+            maze[enemy_pos_y][enemy_pos_x] = 'e';
         }
     }
 
