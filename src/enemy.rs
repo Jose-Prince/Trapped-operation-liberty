@@ -1,5 +1,6 @@
 use nalgebra_glm::Vec2;
 
+#[derive(Clone)]
 pub struct Enemy {
     pos: Vec2,
     a: f32,

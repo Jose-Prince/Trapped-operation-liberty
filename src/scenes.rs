@@ -168,6 +168,7 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
     }
 
     let mut player = Player::new(player_pos.x, player_pos.y, 0.0, PI / 3.0);
+    let mut enemy_in_map = false;
 
     let mut og_pos = player.get_pos();
     let mut new_pos = player.get_pos();
@@ -183,7 +184,7 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
     // Inicializa el z_buffer
     let mut z_buffer = vec![f32::INFINITY; framebuffer.get_width()];
 
-    let mut audio = AudioPlayer::new("Audio/Footsteps.wav",0.1);
+    let mut audio = AudioPlayer::new("Audio/Footsteps.wav", 0.1);
 
     let mut enemy_collision = true;
     
@@ -223,19 +224,25 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
             );
         }
     
-        maze = minimap(framebuffer, maze.clone(), 0.5, key_down, player.get_a(), og_pos, new_pos, &mut enemies, block_size as usize);
+        (maze, enemy_in_map) = minimap(framebuffer, maze.clone(), 0.5, key_down, player.get_a(), og_pos, new_pos, &mut enemies, block_size as usize);
     
         let delta_time = 1.0 / 30.0;
     
         // Actualiza todos los enemigos
         for enemy in &mut enemies {
             let check_collision = enemy.update(delta_time, &maze, block_size);
-            draw_enemies_position(framebuffer, &enemy.get_pos(), block_size as usize);
-            draw_enemy_fov(framebuffer, &enemy, 30, &maze, block_size);
             if check_collision {
                 enemy_collision = false;
                 break;
             }
+        }
+    
+        // Dibuja solo los enemigos que están dentro del área visible del minimapa
+        draw_enemies_position(framebuffer, &enemies, player.get_pos(), block_size as usize, framebuffer.get_width(), framebuffer.get_height());
+    
+        // Dibuja el campo de visión de cada enemigo
+        for enemy in &enemies {
+            draw_enemy_fov(framebuffer, &enemy, 30, &maze, block_size, enemy_in_map, player.get_pos(), 2);
         }
     
         let (maze, player_pos) = render(framebuffer, file_path, 0.5);
@@ -264,6 +271,7 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
         defeat_screen(framebuffer, window, width, height);
     }  
 }
+
 
 
 pub fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {

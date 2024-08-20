@@ -271,26 +271,55 @@ pub fn draw_player_position(framebuffer: &mut Framebuffer, player_pos: Vec2, blo
 }
 
 // Función para dibujar la posición de los enemigos en el minimapa
-pub fn draw_enemies_position(framebuffer: &mut Framebuffer, enemies_pos: &Vec2, block_size: usize) {
+pub fn draw_enemies_position(framebuffer: &mut Framebuffer, enemies: &Vec<Enemy>, player_pos: Vec2, block_size: usize, map_width: usize, map_height: usize) {
     let enemy_size = 2;
-    let color = Color::new(0, 0, 255); // Rojo para los enemigos
+    let color = Color::new(0, 0, 255); // Azul para los enemigos
 
-    for y in -(enemy_size as isize)..=(enemy_size as isize) {
-        for x in -(enemy_size as isize)..=(enemy_size as isize) {
-            framebuffer.set_current_color(color);
-            framebuffer.point(((enemies_pos.x * 0.35) as isize + x), ((enemies_pos.y * 0.35) as isize + y));
+    let minimap_x = (player_pos.x * 0.35) as isize;
+    let minimap_y = (player_pos.y * 0.35) as isize;
+
+    for enemy in enemies {
+        let enemy_pos = enemy.get_pos();
+        let enemy_x = (enemy_pos.x * 0.35) as isize;
+        let enemy_y = (enemy_pos.y * 0.35) as isize;
+
+        // Verifica si el enemigo está dentro del área visible del minimapa
+        if enemy_x >= minimap_x - block_size as isize && enemy_x <= minimap_x + block_size as isize &&
+           enemy_y >= minimap_y - block_size as isize && enemy_y <= minimap_y + block_size as isize {
+            for y in -(enemy_size as isize)..=(enemy_size as isize) {
+                for x in -(enemy_size as isize)..=(enemy_size as isize) {
+                    framebuffer.set_current_color(color);
+                    framebuffer.point(enemy_x + x, enemy_y + y);
+                }
+            }
         }
     }
-    
 }
 
-pub fn draw_enemy_fov(framebuffer: &mut Framebuffer, enemy: &Enemy, num_rays : usize,  maze: &Vec<Vec<char>>, block_size: f32) {
-    for i in 0..num_rays{
-        let current_ray = i as f32 / num_rays as f32;
-        let angle = enemy.get_a() - ((PI / 8.0) / 2.0) + ((PI / 8.0) * current_ray);
-        cast_ray_enemy(&enemy.get_pos(), -angle, &maze, block_size, true, 100.0, 0.35,Some(framebuffer));
+
+
+pub fn draw_enemy_fov(framebuffer: &mut Framebuffer, enemy: &Enemy, num_rays: usize, maze: &Vec<Vec<char>>, block_size: f32, enemy_in_map: bool, player_pos: Vec2, visible_radius: usize) {
+    // Calcula la posición del enemigo en términos de bloques
+    let enemy_block_x = (enemy.get_pos().x / block_size) as usize;
+    let enemy_block_y = (enemy.get_pos().y / block_size) as usize;
+
+    // Calcula la posición del jugador en términos de bloques
+    let player_block_x = (player_pos.x / block_size) as usize;
+    let player_block_y = (player_pos.y / block_size) as usize;
+
+    // Verifica si el enemigo está dentro del rango visible del minimapa
+    let is_enemy_visible = (enemy_block_x as i32 - player_block_x as i32).abs() <= visible_radius as i32
+        && (enemy_block_y as i32 - player_block_y as i32).abs() <= visible_radius as i32;
+
+    if enemy_in_map && is_enemy_visible {
+        for i in 0..num_rays {
+            let current_ray = i as f32 / num_rays as f32;
+            let angle = enemy.get_a() - ((PI / 8.0) / 2.0) + ((PI / 8.0) * current_ray);
+            cast_ray_enemy(&enemy.get_pos(), -angle, &maze, block_size, enemy_in_map, 100.0, 0.35, Some(framebuffer));
+        }
     }
 }
+
 
 pub fn minimap(
     framebuffer: &mut Framebuffer,
@@ -302,9 +331,11 @@ pub fn minimap(
     new_pos: Vec2,
     enemies: &mut Vec<Enemy>,
     block_size: usize
-) -> Vec<Vec<char>> {
+) -> (Vec<Vec<char>>, bool) {
     let rows = maze.len();
     let cols = maze[0].len();
+
+    let mut enemy_in_map = false;
 
     let scale_factor = 0.35;
     let block_size = std::cmp::min(framebuffer.get_width() / cols, framebuffer.get_height() / rows);
@@ -358,13 +389,18 @@ pub fn minimap(
             let is_border_cell = row == 0 || row == rows - 1 || col == 0 || col == cols - 1;
 
             if is_visible || is_border_cell {
+                if maze[row][col] == 'e' {
+                    println!("Enemy detected at position ({}, {})", row, col);
+                    enemy_in_map = true;
+                }
                 draw_cell(framebuffer, x0, y0, scaled_block_size, maze[row][col], opacity);
             }
         }
     }
 
-    maze
+    (maze, enemy_in_map)
 }
+
 
 
 // Función para dibujar el fondo negro con opacidad
