@@ -72,7 +72,7 @@ pub fn game_start(width: usize, height: usize, framebuffer: &mut Framebuffer, wi
     level_selector(framebuffer, window, width, height);
 }
 
-pub fn level_selector(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {
+fn level_selector(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {
     let mut option = 0;
 
     // Definición de los polígonos de fondo para cada nivel
@@ -147,11 +147,11 @@ pub fn level_selector(framebuffer: &mut Framebuffer, window: &mut Window, width:
         _ => file_path = "src/maze1.txt",
     }
 
-    gameplay(framebuffer, file_path, width, height, window, option);
+    controls_screen(framebuffer, file_path, width, height, window,option);
 }
 
 
-pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, height: usize, window: &mut Window, map_chosen: usize) {
+fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, height: usize, window: &mut Window, map_chosen: usize) {
     let (mut maze, player_pos) = render(framebuffer, file_path, 0.5);
     let mut key_down = String::new(); // Cambiado a String
 
@@ -163,9 +163,23 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
     
     let mut enemies: Vec<Enemy> = Vec::new();
 
-    for pos in &enemies_pos {
-        enemies.push(Enemy::new(*pos, -2.0*PI/2.0, -75.0, 20.0, framebuffer.get_height() as f32));
+    let mut direc_enemies: Vec<f32> = Vec::new();
+
+    match map_chosen {
+        0 => direc_enemies = vec![2.0*PI/2.0,2.0*PI/2.0,1.0*PI/2.0,2.0*PI/2.0,1.0*PI/2.0],
+        1 => direc_enemies = vec![2.0*PI/2.0,1.0*PI/2.0,2.0*PI/2.0,1.0*PI/2.0,1.0*PI/2.0],
+        2 => direc_enemies = vec![2.0*PI/2.0,1.0*PI/2.0,1.0*PI/2.0,1.0*PI/2.0,2.0*PI/2.0,1.0*PI/2.0,2.0*PI/2.0,1.0*PI/2.0,1.0*PI/2.0,2.0*PI/2.0,2.0*PI/2.0],
+        _ => direc_enemies = vec![2.0*PI/2.0],
     }
+
+    for (pos, dir) in enemies_pos.iter().zip(direc_enemies.iter()) {
+        if *dir == 2.0*PI/2.0 {
+            enemies.push(Enemy::new(*pos, *dir, 55.0, 20.0, framebuffer.get_height() as f32));
+        } else {
+            enemies.push(Enemy::new(*pos, *dir, -55.0, 20.0, framebuffer.get_height() as f32));
+        }
+    }
+
 
     let mut player = Player::new(player_pos.x, player_pos.y, 0.0, PI / 3.0);
     let mut enemy_in_map = false;
@@ -274,7 +288,7 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
 
 
 
-pub fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {
+fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {
     let win_page = "textures/Ganar.png";
     let mut restart_game = false;
 
@@ -324,7 +338,7 @@ pub fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usi
 }
 
 
-pub fn defeat_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {
+fn defeat_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {
     let defeat_screen = "textures/Perdida.png";
 
     let mut restart_game = false;
@@ -350,4 +364,25 @@ pub fn defeat_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: 
         audio_end.stop();
         game_start(width, height, framebuffer, window);
     }
+}
+
+fn controls_screen(framebuffer: &mut Framebuffer, file_path: &str, width: usize, height: usize, window: &mut Window, map_chosen: usize) {
+
+    let controls_page = "textures/Controls.png";
+    let start_time = Instant::now();
+
+    while window.is_open() && !window.is_key_down(minifb::Key::Escape) && start_time.elapsed() < Duration::from_secs(5) {
+        framebuffer.draw_image(&controls_page, width, height);
+
+        let elapsed_secs = start_time.elapsed().as_secs();
+        let remaining_time = 5 - elapsed_secs;
+
+        let countdown_text = format!("Game starts in {}", remaining_time);
+        framebuffer.draw_text(width/4 + 45, 5*height/6, &countdown_text, Color::new(255, 255, 255), 70.0);
+
+        window.update_with_buffer(framebuffer.get_buffer(), width, height).unwrap();
+        std::thread::sleep(Duration::from_millis(16));
+    }
+
+    gameplay(framebuffer, file_path, width, height, window, map_chosen);
 }
