@@ -147,11 +147,11 @@ pub fn level_selector(framebuffer: &mut Framebuffer, window: &mut Window, width:
         _ => file_path = "src/maze1.txt",
     }
 
-    gameplay(framebuffer, file_path, width, height, window);
+    gameplay(framebuffer, file_path, width, height, window, option);
 }
 
 
-pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, height: usize, window: &mut Window) {
+pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, height: usize, window: &mut Window, map_chosen: usize) {
     let (mut maze, player_pos) = render(framebuffer, file_path, 0.5);
     let mut key_down = String::new(); // Cambiado a String
 
@@ -164,7 +164,7 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
     let mut enemies: Vec<Enemy> = Vec::new();
 
     for pos in &enemies_pos {
-        enemies.push(Enemy::new(*pos, PI / 2.0, -125.0, 20.0, framebuffer.get_height() as f32));
+        enemies.push(Enemy::new(*pos, -2.0*PI/2.0, -75.0, 20.0, framebuffer.get_height() as f32));
     }
 
     let mut player = Player::new(player_pos.x, player_pos.y, 0.0, PI / 3.0);
@@ -248,7 +248,7 @@ pub fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, he
         let (maze, player_pos) = render(framebuffer, file_path, 0.5);
     
         // Dibuja la posición del jugador en el minimapa
-        draw_player_position(framebuffer, player.get_pos(), block_size as usize);
+        draw_player_position(framebuffer, player.get_pos(), block_size as usize, map_chosen);
     
         frame_count += 1;
         let fps = calculate_fps(start_time, frame_count);

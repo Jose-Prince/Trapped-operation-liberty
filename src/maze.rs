@@ -258,18 +258,31 @@ pub fn is_wall(maze: &Vec<Vec<char>>, x: usize, y: usize) -> (bool, char) {
 }
 
 // Función para dibujar al jugador en el minimapa
-pub fn draw_player_position(framebuffer: &mut Framebuffer, player_pos: Vec2, block_size: usize) {
+pub fn draw_player_position(framebuffer: &mut Framebuffer, player_pos: Vec2, block_size: usize, map_chosen: usize) {
+    let mut x_fix = 0;
+    let mut y_fix = 0;
+
+    if map_chosen == 0 {
+        x_fix = 1;
+        y_fix = 0;
+    } else if map_chosen == 1 {
+        x_fix = 20;
+        y_fix = 3;
+    } else {
+        x_fix = -7;
+        y_fix = -2;
+    }
+
     let player_size = 2;
     let color = Color::new(0, 255, 0); // Verde para el jugador
 
     for y in -(player_size as isize)..=(player_size as isize) {
         for x in -(player_size as isize)..=(player_size as isize) {
             framebuffer.set_current_color(color);
-            framebuffer.point(((player_pos.x * 0.35) as isize + x), ((player_pos.y * 0.35) as isize + y));
+            framebuffer.point(((player_pos.x * 0.33) as isize + x + x_fix), ((player_pos.y * 0.33) as isize + y + y_fix));
         }
     }
 }
-
 // Función para dibujar la posición de los enemigos en el minimapa
 pub fn draw_enemies_position(framebuffer: &mut Framebuffer, enemies: &Vec<Enemy>, player_pos: Vec2, block_size: usize, map_width: usize, map_height: usize) {
     let enemy_size = 2;

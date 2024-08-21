@@ -36,7 +36,7 @@ impl Player {
     }
 
     pub fn process_events(&mut self, window: &Window, maze: &Vec<Vec<char>>, block_size: f32, framebuffer: &mut Framebuffer, audio: &mut AudioPlayer) -> (String, Vec2) {
-        const MOVE_SPEED: f32 = 3.5;
+        const MOVE_SPEED: f32 = 2.3;
         const ROTATION_SPEED: f32 = std::f32::consts::PI / 30.0;
         let mut key_down = String::new();
         

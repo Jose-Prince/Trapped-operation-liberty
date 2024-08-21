@@ -1,4 +1,5 @@
 use nalgebra_glm::Vec2;
+use std::f32::consts::PI;
 
 #[derive(Clone)]
 pub struct Enemy {
@@ -49,7 +50,7 @@ impl Enemy {
         };
 
         if temp_enemy.check_collision_with_wall(maze, block_size) {
-            self.a = -self.a;
+            self.a = (self.a + PI) % (2.0 * PI);
         } else {
             self.pos = new_pos;
         }
