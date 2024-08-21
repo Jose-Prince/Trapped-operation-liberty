@@ -286,17 +286,20 @@ fn gameplay(framebuffer: &mut Framebuffer, file_path: &str, width: usize, height
     }  
 }
 
-
-
 fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {
     let win_page = "textures/Ganar.png";
     let mut restart_game = false;
 
     let mut audio_shot = AudioPlayer::new("Audio/Shot.wav", 0.5);
+    let mut audio_scream = AudioPlayer::new("Audio/hey.mp3", 0.5);
     let mut audio_music = AudioPlayer::new("Audio/Liberado.mp3", 0.5);
     let mut shot_count = 0;
 
     let mut show_victory_screen = false;
+
+    // Reproduce el audio del grito y espera a que termine antes de continuar
+    audio_scream.play();
+    std::thread::sleep(Duration::from_secs(2)); // Ajusta el tiempo según la duración del audio si es necesario
 
     while window.is_open() && !window.is_key_down(minifb::Key::Escape) {
         // Limpiar el framebuffer a negro antes de mostrar cualquier cosa
@@ -336,6 +339,7 @@ fn win_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, 
         game_start(width, height, framebuffer, window);
     }
 }
+
 
 
 fn defeat_screen(framebuffer: &mut Framebuffer, window: &mut Window, width: usize, height: usize) {
