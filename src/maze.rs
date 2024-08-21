@@ -21,7 +21,7 @@ fn draw_cell(framebuffer: &mut Framebuffer, x0: usize, y0: usize, block_size: us
         '|' | '-' | '!' | '/' => Color::new(5, 166, 114), // Paredes
         'g' => Color::new(255, 255, 0), // Meta
         ' ' => Color::new(0, 0, 0), // Espacios vacíos
-        'p' | 'e' => Color::new(255, 0, 0), // Espacio del jugador
+        'p' | 'e' => Color::new(0, 0, 0), // Espacio del jugador
         _ => Color::new(0, 0, 0),        // Color por defecto para caracteres desconocidos
     };
 
